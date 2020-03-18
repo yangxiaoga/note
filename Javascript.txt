@@ -1,0 +1,347 @@
+		
+		Javascript
+
+
+
+
+                          js语法
+1、Infinity
+     Infinity是全局对象global object的一个属性
+
+2、NaN 
+      是一个全局对象的属性，其值就是NaN不能通过==判断是否一个值是NaN
+      必须使用Number.isNaN(value)来判断或者isNaN（value）
+
+3、undefined 
+     是全局对象的一个属性，一个没有被赋值的变量类型是undefined，
+     一个函数如果没有返回值，就会返回一个undefined值
+4、null
+     null是一个字面量，
+
+
+5、js验证
+
+	onsubmit提交
+     	onsubmit=“return check()”
+     	return 一定要加上，不然check的返回值哪怕是false仍然提交
+     	onsubmit=“return false”为不执行提交
+
+
+6、创建对象
+     new Object()
+     var obj = {
+               name:"laoli"
+               age:25
+               say:function(){
+                 return "dfsfd";
+               }
+               //以逗号隔开
+     }
+    
+7、数组（
+     new Array()
+     new Array(size)
+     new Array(e0,e1,e3,...en)
+     var arr =  [3,2,..3]
+    
+   遍历
+  for （var  i in arr）{
+      alert(arr[i]);
+   } 
+
+   添加元素
+  attr.push(100);
+
+8、js的全局方法
+	encodeURI(str) 
+	不会对 ASCII 字母和数字进行编码，也不会对这些 ASCII 标点符号进行编码： - _ . ! ~ * ' ( ) 。
+	encodeURIComponent(str)
+	该方法不会对 ASCII 字母和数字进行编码，也不会对这些 ASCII 标点符号进行编码： - _ . ! ~ * ' ( ) 。
+
+	其他字符（比如 ：;/?:@&=+$,# 这些用于分隔 URI 组件的标点符号），都是由一个或多个十六进制的转义序列替换的
+	decode(str)
+	decodeURIComponent(str)
+
+
+9、js基本对象
+
+9.1、Object
+      javascript中几乎所有的对象都是Object的实例，所有的对象都继承了Object.prototype的属性和方法
+      prototype object Object 
+      constructor 
+      function Object() { }
+
+9.2、Function
+     javascript 中，每个函数实际上都是一个Function对象
+   
+9.3、Array 对象
+       fruit = ["Apple","Banana"]     
+
+       数组的遍历
+
+	var a = ["1","2","44"];
+	a.forEach(
+		function(item,index,array) {
+			alert(item);
+	);
+
+添加元素到数组的末尾
+	var length = a.push("value");
+
+删除数组末尾的元素
+	var obj = a.pop();
+
+删除数组最前面的元素
+	a.shift();
+
+添加到数组的最前端
+	a.unshift("value");
+
+找到某个元素在数组中的索引
+a.indexOf("value");
+
+删除某个位置的元素
+a.splice(2,1) 删除索引为2的位置的一项
+
+=======================================
+array.splice(start)
+array.splice(start, deleteCount) 
+array.splice(start, deleteCount, item1, item2, ...)
+========================================
+
+复制数组
+a.slice(start,end)
+选择数组的一部分浅拷贝到一个新数组对象，原始数组不会改变，不包括end
+======================================
+
+
+
+10、js内置对象
+
+10.1、Array对象
+     .length 获得数组的长度
+     .concat 连接内容或者数据，组成新的数组
+     .join(n)用n连接数组的每一项组成字符串，可以是空字符串
+     .pop() 删除数组的最后一项数据，并返回删除的数据
+     .push() 在数组最后加入新的内容返回新的数组长度
+     .reverse() 反转数组
+
+10.2、String对象
+     .length 获得字符串的长度
+     .charAt(n)  找到索引位置上的字符
+     .charCodeAt(n) 找到索引位置上的字符的编码
+     .indexOf("m") 找到字符m在字符串中最后一次出现的索引，如果没有找到返回-1
+     .split(“n”)以字符n分隔字符串，并返回一个数组，空字符串时分隔每个字符
+     .substr(n,m) 截取字符串，从索引n开始截取，截取到m个字符（m取不到）
+     .toLowerCase() 把字符串中的字母转化成小写
+     .toUpperCase() 把字符串中的字母转化成大写
+
+10.3、Math对象
+   .pow
+   .abs
+    round
+    floor
+    ceil
+    random
+
+10.4、Date对象
+      getDate
+
+10.5、Event对象
+
+10.6、Window对象
+     alert  confirm  确认框  prompt输入框
+
+
+10、主要事件：
+onclick 鼠标点击
+onmouseover 鼠标放上
+onmouseout鼠标离开
+ondblclick  双击事件
+onmousedown 鼠标按下
+onmounseup鼠标抬起
+onmounsemove 鼠标移动
+
+
+表单事件
+onfocus 获得焦点
+onblur 失去焦点
+onsubmit 提交事件
+onchange 发生改变的时候
+onreset 重置事件
+
+键盘事件
+onkeypress 键盘按下一次
+onkeydown 按键按下
+onkeyup 按键抬起
+
+
+窗口事件
+onload 页面加载完成后立即执行
+
+
+Event
+保存事件发生时的相关信息
+event.clientX  事件发生时的X坐标
+event.clientY 事件发生时Y的坐标
+event.target 事件源
+
+
+11、parseInt（string,redix） 解析字符串，返回一个指定基数的整数
+     redix是前者基于的进制
+     如10,2 即 10基于2进制，转换成的int数为2
+     parseFloat（str）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

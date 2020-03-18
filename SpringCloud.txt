@@ -1,0 +1,472 @@
+   
+      SpringCloud 初级
+
+1、什么是服务注册中心
+
+服务注册中心是服务实现服务化管理的核心组件，类似于目录服务的作用，主要用来存储服务信息
+譬如提供url串，路由信息等。服务注册中心是SOA架构中最基础的设施之一
+
+1.1 服务注册中心的作用
+    
+    服务的注册
+    服务的发现
+   
+1.2 常见注册中心
+ 
+   1.2.1 Dubbo zookeeper
+   1.2.2 SpringCould Eureka
+
+1.3 服务注册中心解决了什么问题
+
+  1.3.1 服务管理
+        IP,端口等等
+
+  1.3.2 服务的依赖管理
+        服务之间的依赖
+  
+
+1.4 Eureka注册中心
+    Eureka是Netflix开发的服务发现组件，本身是一个基于
+    Rest的服务。SpringCloud将它集成在其子项目spring-cloud-netflix中
+    以实现SpringCloud的服务注册与发现，同时还提供了
+    负载均衡，故障转移等能力
+
+
+1.5 Eureka注册中心三种角色
+
+    Eureka Server
+    通过Register,Get,Renwe等接口提供服务的注册和发现
+
+    ApplicationService-Service Provider
+    服务提供方
+    把自身的服务实例注册到Eureka Server中
+   
+     Application Client-Service Consumer
+     服务调用方通过Eureka Server服务列表，消费服务
+
+     
+Application Service
+
+  Register服务注册：把自己的IP和端口注册给Eureka
+  Renew服务续约：发送心跳包，每30秒发送一次，告诉Eureka自己还活着
+  Cancel服务下线：当Provider关闭时，会向Eureka发送消息，把自己从服务列表中删除
+                  防止Consumer调用到不存在的服务
+  Get Registry获取服务注册列表：获取其他服务列表
+
+  Relicate集群中数据同步：eureka集群中数据复制与同步
+  Make Remote Call（远程调用）：完成服务的远程调用
+
+1.6什么是CAP定理
+
+1.6.1 什么是CAP原则
+CAP原则又称为CAP定理，指的是一个分布式系统中，
+Consistency(一致性)
+Availability(可用性)
+Partition tolerance(分区容错性)
+三者不可兼得
+
+C 数据一致性：也叫数据原子性
+系统在执行某项操作后，仍然处于一致的状态，
+在分布式系统中，更新操作执行成功后，所有的用户
+都应该读到最新的值，这样的系统被认为是具有强一致性的
+等同于所有节点访问同一份嘴型的数据副本
+
+A 服务可用性
+每一个操作总是能够在一定的时间诶返回结果，这里需要注意的是
+一定时间内和返回结果，一定时间内指的是在可以容忍的范围内
+返回结果，结果可以是成功或者失败
+
+P 分区容错性
+在网络分区的情况下，被分隔的节点仍然能正常对外提供服务
+（分布式集群，数据被分布存储在不同呃服务器上，无论什么情况
+服务器都能正常被访问）
+
+任何分布式系统，只可能同时满足二点，没法三者兼顾
+
+Zookeeper和Eureka的区别
+
+对比项            Zookeeper            Eureka
+
+CAP                CP                     AP
+
+Dubbo集成         已支持                  _
+
+SpringCloud集成   已支持                  已支持
+
+kv服务            支持                    - 
+     
+使用接口          支持                    http多语言
+
+watch支持         支持                    支持
+
+集群监控          —                      metrics
+
+Eureka的存储都在内存中
+watch指的是客户端监听服务端的变化
+
+     
+1.7 Eureka的服务自我保护
+
+微服务在Eureka上注册后，会每30秒发送心跳包，Eureka通过心跳来判断
+服务是否健康，定期删除超过90秒没有发送心跳的服务
+
+收不到心跳包？
+微服务自身原因收不到心跳包
+网络原因，15分钟内低于85%
+以上算法为Eureka的服务自我保护
+
+1、当网络故障恢复后，这个Eureka节点会退出“自我保护模式”
+2、Eureka会缓存服务的功能，
+3、微服务的负载均衡策略会走动剔除死亡的微服务节点
+
+4、关闭Eureka的自我保护
+   eureka.server.enableSelfPreservation=false
+   #清理间隔
+   eureka.server.eviction.interval-time-in-ms=60000
+
+Eureka入门案例
+
+springcloud-eureka-server
+
+pom文件：
+
+<dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-denpendencies</artifactId>
+        <version>Dalston.SRS</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+</dependencyManagement>
+<dependencies>
+
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-config</artifactId>
+  </dependency>
+
+  <!-- Eureka-Server -->
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-eureka-server</artifactId>
+  </dependency>
+
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+  </dependency>
+
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+  </dependency>
+
+</dependencies>
+
+
+EurekaApplication
+
+@EnableEurekaServer
+@SpringBootApplication
+public class EurekaAppication{
+  public static void main(String[] args){
+    SpringApplication.run(EurekaApplication.class, args);
+
+  }
+
+}
+
+
+说明：Eureka-server本身也是一个服务，会尝试去注册中心注册及
+读取相关的服务注册信息
+
+配置文件
+
+application.properties：
+spring.application.name=eureka-server
+server.port=8761
+#是否将自己注册到Eureka-Server中，默认为true
+eureka.client.registerWithEureka=false
+#时候从Eureka-Server中获取服务注册信息，默认为true
+eureka.client.fetchRegistry=false
+
+访问管理页面
+http://localhost:8761
+
+
+Eureka集群
+---------------------------------------------------------
+application-eureka1.properties
+
+spring.application.name=eureka-server
+server.port=8761
+
+#设置eureka实例名称，与配置文件的变量为主
+eureka.instance.hostname=eureka1
+
+#设置服务注册中心地址，指向另一个注册中心
+eureka.client.serviceUrl.defaultZone=http://eureka2:8761/eureka/
+
+--------------------------------------------------------------
+
+application-eureka2.properties
+
+spring.application.name=eureka-server
+server.port=8761
+
+#设置eureka实例名称，与配置文件的变量为主
+eureka.instance.hostname=eureka2
+
+#设置服务注册中心地址，指向另一个注册中心
+eureka.client.serviceUrl.defaultZone=http://eureka1:8761/eureka/
+----------------------------------------------------------
+
+
+集群部署
+
+需要关闭liunx的防火墙
+
+1、服务打包
+maven clean install
+
+2、jar包上传到虚拟机中
+   
+    创建新目录，将jar置于其中如/usr/local/eureka/
+ 
+    java -jar JarName --spring.profiles.active=eureka1
+
+    或者写入到脚本文件中，利用脚本文件启动
+    chmod -R 755 server.sh
+
+3、修改linux的host文件
+
+   vi /etc/hosts
+
+   192.168.70.134 eureka1
+   192.168.70.135 eureka2
+
+
+
+创建Provider服务
+spring-cloud-eureka-provider
+ 
+pom文件：
+<dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-denpendencies</artifactId>
+        <version>Dalston.SRS</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+</dependencyManagement>
+<dependencies>
+
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-config</artifactId>
+  </dependency>
+
+  <!-- Eureka,无server表示客户端 -->
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-eureka</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+  </dependency>
+</dependencies>
+
+修改启动类
+
+EurekaApplication：
+
+@EnableEurekaClient
+@SpringBootApplication
+public class EurekaAppication{
+  public static void main(String[] args){
+    SpringApplication.run(EurekaApplication.class, args);
+
+  }
+}
+
+application.properties
+
+spring.application.name=eureka-provider
+server.port=9090
+
+#设置服务注册中心地址,可以配置多个，以逗号分隔开
+eureka.client.serviceUrl.defaultZone=http://eureka2:8761/eureka/,http://eureka1:8761/eureka/
+
+修改Provider机器的hosts文件
+添加:
+
+   192.168.70.134 eureka1
+   192.168.70.135 eureka2
+
+启动
+
+Cosumer与Provider配置大致相同，同时也需要在注册中心注册
+
+
+application.properties
+
+spring.application.name=eureka-consumer
+server.port=9091
+
+
+Cosumer调用服务：
+
+@Service
+public class UserService{
+    
+    //负载均衡的对象，ribbon负载均衡器
+    @Autowired
+    private LoadBalancerClient loadBalancerClient ;
+
+    public List<User> getUsers(){
+        
+        //选择调用服务的名称
+        //ServiceInstance封装了服务的IP和端口
+        ServiceInstance si = this.loadBalancerClient.choose("eureka-provider");
+        //拼接服务的URL
+        StringBuffer sb = new StringBuffer();
+        sb.append("http://").append(si.getHost()).append(":").append(si.getPort()).append("/user");
+
+        //发送请求
+        RestTemplate rt = new RestTemplate();
+        ParameterizedTypeReference<List<User>> type = new izedTypeReference<List<User>>(){};
+
+        //返回值信息
+        ResponseEntity<List<User>> res = rt.exchange(sb.toString(),HttpMethod.GET,null,type); 
+        List<User> list = res.getBody();
+        return list;
+    }
+
+}
+
+优雅停服
+
+  <!-- Eureka-Server -->
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-eureka-server</artifactId>
+  </dependency>
+
+actuator的jar包包含在eureka-server中
+需要添加配置
+endpoints.shutdown.enabled=true
+endpoints.shutdown.sensitive=false
+
+发送停止服务的请求
+
+http://ip:port/shutdown
+
+
+
+Eureka注册中心的安全认证
+
+在Eureka Server中添加security的包
+
+org.springframework.boot
+spring-boot-starter-security
+
+
+修改Eureka配置文件
+security.basic.enabled=true
+security.user.name=user
+security.user.password=123456
+
+
+集群之间配置文件的配置
+------------------------------------------
+application-eureka2.properties
+
+spring.application.name=eureka-server
+server.port=8761
+
+#设置eureka实例名称，与配置文件的变量为主
+eureka.instance.hostname=eureka2
+
+#设置服务注册中心地址，指向另一个注册中心
+eureka.client.serviceUrl.defaultZone=http://user:123456@eureka1:8761/eureka/
+-----------------------------------------------------------------
+
+provider及consumer服务都需要配上user：123456验证信息
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

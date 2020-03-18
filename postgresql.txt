@@ -1,0 +1,150 @@
+﻿	
+		Postgresql
+
+/***
+ *                    
+ *                 .-~~~~~~~~~-._       _.-~~~~~~~~~-.
+ *             __.'  欢迎访问    ~.   .~              `.__
+ *           .'//                   \./   ☞ postgresql ☜ \\`.
+ *         .'//                     |                     \\`.
+ *       .'// .-~"""""""~~~~-._     |     _,-~~~~"""""""~-. \\`.
+ *     .'//.-"                 `-.  |  .-'                 "-.\\`.
+ *   .'//______.============-..   \ | /   ..-============.______\\`.
+ * .'______________________________\|/______________________________`.
+ */
+
+
+
+1、允许non-host连接
+     修改data下的pg_hba.conf
+        host all all 0.0.0.0/0 trust
+        所有的数据库所有的用户所有的主机都能访问
+
+2、控制台连接数据库
+ 	psql -U username -d databasename -h host -p port
+
+
+3、控制台常用命令
+	\h: 查看sql命令的解释,比如\h select
+	\?: 查看sql的命令列表
+	\l: 列出所有的数据库
+	\c [database_name]: 连接其他数据库
+	\d: 列出当前数据库的所有表格
+	\d [table_name]: 列出一张表格的结构
+	\du: 列出所有的用户
+	\e: 打开文本编辑器
+	\x: 扩展显示打开|关闭(以列的形式展示数据)
+	\o file_name: 将控制台输出重定向到文件file_name中
+	\conninfo: 列出当前的数据库和连接信息
+	\password user_name: 为用户设置密码
+	\q: 退出控制台
+
+4、用户管理常用命令-控制台
+
+	# 创建用户[设置密码]
+	CREATE USER user_name [WITH PASSWORD 'password'];
+
+	# 创建数据库并指定拥有者
+	CREATE DATABASE database_name OWNER user_name;
+
+	# 将数据库(database_name)的所有权都赋予用户(user_name),否则用户只能登陆,
+
+	赋予使用schema的权限     
+ 	grant USAGE on schema schema_name to user_name;
+
+	没有任何数据库操作权限
+	GRANT ALL PRIVILEGES ON DATABASE database_name TO user_name
+
+	# 创建超级用户
+	CREATE USER user_name SUPERUSER PASSWORD 'password';
+
+	# 删除用户
+	DROP USER IF EXISTS user_name 
+
+	# 为用户指定查询路径(search_path)
+	ALTER USER user_name SET SEARCH_PATH TO schema_name, database_name;
+
+	# 更改数据库的owner
+	alter DATABASE database_name owner TO user_name
+
+	用户管理常用命令-shell
+	# 创建用户
+	sudo -u postgres CREATE user --superuser user_name
+
+	# 设置密码
+	\password user_name
+
+	# shell命令下创建数据库并指定拥有者
+	sudo -u postgres CREATEdb -O user_name database_name
+
+	数据库操作
+	# 创建新表
+	CREATE TABLE table_name(name VARCHAR(20), time DATE);
+
+	# 插入数据
+	INSERT into table_name(name, time) VALUES('张三', '2017-08-02')
+
+	# 选择记录
+	select * from table_name;
+
+	# 删除记录
+	UPDATE table_name SET name = '李四' where name = '张三';
+
+	# 添加栏位
+	ALTER TABLE table_name ADD email VARCHAR(40);
+
+	# 更新结构     
+	ALTER TABLE table_name ALTER COLUMN time SET NOT NULL;
+
+	# 更名栏位
+	ALTER TABLE table_name RENANE COLUMN time TO currenttime;
+
+	# 表重命名
+	ALTER TABLE table_name RENAME TO new_name;
+
+	# 删除栏位
+	ALTER TABLE table_name DROP COLUMN email;
+
+	# 删除表格
+	DROP TABLE IF EXISTS table_name;
+
+	# 删除表格的内容 
+	TRUNCATE table_name;
+	DELETE FROM table_name;
+
+	# 转变column类型
+	SELECT * FROM table_name ORDER BY colunmn_str::integer
+
+	备份还原操作
+	# 执行sql文件
+	psql -U user_name [-d] database_name < sql_file
+
+	# 备份文件
+	pg_dump -h hostname -p port -U user_name -d database_name [--schema=schema_name] -t table_name > dump_file
+
+	执行sql 文件-d参数可以缺省.
+	如果要还原一个表(表中有schema信息),必须要先建立对应的schema和数据库;
+	如果是要还原一个schema,则要建立数据库(数据库是任意的).
+	数据库 –> schema –> 表.
+	备份一个表格时schema名字可缺省,指定schema时要用格式--schema=schema_name.
+
+
+5、postgresql UPDATE多表关联
+
+	update t_fw_fwxx
+		set n_cjdw = cast(app.c_cjfbh as int)
+	from t_drsp_appinfo as app
+	where t_fw_fwxx.c_appinfobh = app.c_bh and t_fw_fwxx.c_bh = '5f3ceb9b259146d286bbefb6ca76dc95'
+
+	前表不用取别名，后表需要取别名
+
+6、row_number() over()分组排序功能
+
+	先按照c6，c9 分组，再在组内针对c12进行排序
+	row_number() over(partition by t.c6,t.c9 ORDER BY t.c12::int desc) as c13
+7、截取 
+	substr('fs',1,4) 从第一位开始，截取4位
+
+   表达式替换 regexp_replace('2017年05月'，'年'，'') ，将字符串中年换成''
+
+

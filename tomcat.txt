@@ -1,0 +1,119 @@
+﻿Tomcat
+
+一、Tomcat虚拟机参数的配置和查看
+
+
+	1、修改bin 下的catalina.sh
+		在文件的起始处添加
+		JAVA_OPTS='-Xms3072m -Xmx3072m -XX:PermSize=512m  -XX:MaxPermSize=512m' 
+
+	2、启动Tomcat
+		查看配置 ps -ef|grep tomcat
+		找到进程号pid
+		jmap -heap pid
+------------------------------------------------
+	Heap Configuration:
+   		MinHeapFreeRatio = 40
+   		MaxHeapFreeRatio = 70
+   		MaxHeapSize      = 3221225472 (3072.0MB)
+   		NewSize          = 1310720 (1.25MB)
+   		MaxNewSize       = 17592186044415 MB
+   		OldSize          = 5439488 (5.1875MB)
+   		NewRatio         = 2
+   		SurvivorRatio    = 8
+   		PermSize         = 536870912 (512.0MB)
+   		MaxPermSize      = 536870912 (512.0MB)
+   		G1HeapRegionSize = 0 (0.0MB)
+---------------------------------------------------
+	3、补充
+		如果配置了这些参数，在ps -ef|grep tomcat，的时候就会显示出来配置的参数
+
+二、使用同一个tomcat部署多个应用，并分别监听在不同的端口
+ 
+ 
+1、问题起源
+   	看到大屏的数据管理war和visu服务的部署需要使用两个tomcat
+   	分别是apache-tomcat-7.0.70_6080，apache-tomcat-7.0.79_8080
+   	目的有两个：使用两个不同的端口，两者不相互影响
+
+   	但是：大屏一直在运行，但是大屏数据管理接口不一定一直运行，为节省资源，是不是可以启用一个tomcat，
+     	然后两个应用分别使用不同的端口
+
+    	当然两者部署在两个tomcat上相对保险一些，服务挂掉只有一个受到影响 ，
+	不排除会有这种一个tomcat的场景，于是在网上搜了一下做了一个尝试。
+
+2、准备web包
+   建两个简单的Web项目，名称分别为Web1，Web2
+   分别打成两个war包Web1.war，Web2.war
+
+3、修改tomcat conf目录下的server.xml文件
+   找到Service节点（代表一个应用服务）
+  <Service name="Catalina1">
+  	<Connector port="8081" protocol="HTTP/1.1" 
+  	connectionTimeout="20000" 
+  	redirectPort="8443" />
+  
+  	<Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+  	<Engine name="Catalina1" defaultHost="localhost"> 
+  		<Realm className="org.apache.catalina.realm.UserDatabaseRealm" resourceName="UserDatabase"/>
+  		<Host name="localhost" appBase="webapps1" unpackWARs="true" autoDeploy="true"
+  		xmlValidation="false" xmlNamespaceAware="false">
+  		</Host>
+  	</Engine>
+  </Service>
+ 
+	复制一个以上的Service节点及节点下的内容,更改Sevice节点的属性 name为“Catalina2”，Connection 的属性port为“8082”
+	Engine 的属性name为“Catalina2”、Host的属性appBase为“webapps2”，追加到上述的"Catalina1"配置之后
+如下所示：
+  <Service name="Catalina2">
+  
+  <Connector port="8082" protocol="HTTP/1.1" 
+  connectionTimeout="20000" 
+  redirectPort="8443" />
+  
+  <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+  <Engine name="Catalina2" defaultHost="localhost"> 
+  	<Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+   	resourceName="UserDatabase"/>
+  	<Host name="localhost" appBase="webapps2"
+  	unpackWARs="true" autoDeploy="true"
+  	xmlValidation="false" xmlNamespaceAware="false">
+  	</Host>
+  </Engine>
+  </Service>
+ 
+4、建立项目基础目录
+	对应上述Host的属性appBase =“webapp1”和appBase =“webapp1”
+	复制webapps并分别命名 webapps1、webapps2
+
+	并将Web1.war，Web2.war 分别放到webapps1、webapps2中
+5、启动tomcat并访问
+	访问Web1项目
+
+6、解释一下tomcat中的配置吧
+	Server 唯一顶端元素，配置文件的根元素，内部可以有多个Service元素
+    	作用：提供一个接口让客户端能够访问到这个Service集合，同时维护所有的Service的生命周期，
+	包含初始化，结束服务及如何找到客户端要访问的Service
+
+	Service 代表一个Engine元素及一组与之相连的Connector元素
+  	组装Connector和Engine，一个Service可以包含多个Connector，
+	但只能包含一个Engine，Connector接收客户端请求，Engine处理客户端请求
+
+	Connector 连接器，代表了外部客户端发送请求到特定Service的接口；主要功能是接收连接请求，
+	创建Request和Response对象用于和请求端交换数据；然后分配线程让Engine处理，并把 Request和Response对象传给Engine
+	在配置文件中Web1通过8081端口使用http协议访问tomcat
+
+	Engine 容器
+ 	容器的功能是处理Connector接收进来的请求，并产生相应的响应，Engine和Host都是容器，且他们是父子关系Engine包含Host，
+	一个Engine组件可以处理Service中的所有请求
+	一个Host组件可以处理发向一个特定虚拟主机的所有请求
+ 	Host对应了服务器中一个网络名实体如www.yang.com或ip地址 172.16.192.161
+
+	Host配置
+      <Host name="localhost"  appBase="webapps2"
+            unpackWARs="true" autoDeploy="true"
+            xmlValidation="false" xmlNamespaceAware="false">
+      </Host>
+   	name属性指定虚拟主机的主机名，
+	一个Engine中有且仅有一个Host组件和name属性与Engine组建的defaultHost属性相匹配
+

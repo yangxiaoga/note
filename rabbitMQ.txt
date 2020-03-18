@@ -1,0 +1,385 @@
+    
+    Topic交换器-规则匹配
+
+根据路由Key进行模糊匹配
+多对多
+
+
+
+Provider
+	
+application.prperties
+   spring.application.name=springcould-mq
+   spring.rabbitmq.host=192.168.1.12
+   spring.rabbitmq.port=5672
+   spring.rabbitmq.username=guest
+   spring.rabbitmq.password=guest
+      
+   #设置交换器的名称
+   mq.config.exchange=log.topic
+
+生产者-用户服务:
+
+@Component
+UserProvider{
+
+    @Autowired
+    private AmqpTemplate rabbitAmqpTemplate;
+
+    @Value("${mq.config.exchange}")
+    private String exchange;
+
+    public void send(String msg){
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"user.log.info", "user.log.info"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"user.log.debug", "user.log.debug"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"user.log.warn", "user.log.warn"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"user.log.error", "user.log.error"+ msg);
+    }
+}
+
+生产者-商品服务:
+
+@Component
+ProductProvider{
+
+    @Autowired
+    private AmqpTemplate rabbitAmqpTemplate;
+
+    @Value("${mq.config.exchange}")
+    private String exchange;
+
+    public void send(String msg){
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"product.log.info", "product.log.info"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"product.log.debug", "product.log.debug"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"product.log.warn", "product.log.warn"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"product.log.error", "product.log.error"+ msg);
+    }
+}
+
+生产者-订单服务
+@Component
+OrderProvider{
+
+    @Autowired
+    private AmqpTemplate rabbitAmqpTemplate;
+
+    @Value("${mq.config.exchange}")
+    private String exchange;
+
+    public void send(String msg){
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"order.log.info", "order.log.info"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"order.log.debug", "order.log.debug"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"order.log.warn", "order.log.warn"+ msg);
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"order.log.error", "order.log.error"+ msg);
+    }
+}
+
+
+
+消费者
+Consumer
+
+为了方便的进行模拟，以下三个消费者都在一个springboot的项目中，为单独的三个类
+
+application.properties
+   spring.application.name=springcould-mq
+   spring.rabbitmq.host=192.168.1.12
+   spring.rabbitmq.port=5672
+   spring.rabbitmq.username=guest
+   spring.rabbitmq.password=guest 
+      
+   #设置交换器的名称
+   mq.config.exchange=log.topic
+
+   #info队列名称
+   mq.config.queue.info=log.info
+
+   #error队列名称
+   mq.config.queue.error=log.error
+  
+   #log队列名称
+   mq.config.queue.logs=log.all
+
+
+消费者-InfoReceiver
+  
+@Component
+@RabbitListener(
+  bindings=@QueueBing(
+    value=@Queuue(
+        value="${mq.config.queue.info}",
+        autoDelete="true"
+    ),
+    exchange=@Exchange(
+        value="${mq.config.exchange}",
+        type=ExchangeTypes.TOPIC
+    ),
+    key="*.log.info"
+  )
+
+)
+public class InfoReceiver{
+
+    @RabbitHandler
+    public void process(String msg){
+        System.out.println("Info-receiver: "+msg);
+    }
+}
+ 
+
+
+消费者-ErrorReceiver
+@Component
+@RabbitListener(
+  bindings=@QueueBing(
+    value=@Queuue(
+        value="${mq.config.queue.error}",
+        autoDelete="true"
+    ),
+    exchange=@Exchange(
+        value="${mq.config.exchange}",
+        type=ExchangeTypes.TOPIC
+    ),
+    key="*.log.error"
+  )
+
+)
+public class ErrorReceiver{
+
+    @RabbitHandler
+    public void process(String msg){
+        System.out.println("Error-receiver: "+msg);
+    }
+}
+
+消费者-Logs
+
+@Component
+@RabbitListener(
+  bindings=@QueueBing(
+    value=@Queuue(
+        value="${mq.config.queue.logs}",
+        autoDelete="true"
+    ),
+    exchange=@Exchange(
+        value="${mq.config.exchange}",
+        type=ExchangeTypes.TOPIC
+    ),
+    key="*.log.*"
+  )
+
+)
+public class LogsReceiver{
+
+    @RabbitHandler
+    public void process(String msg){
+        System.out.println("Logs-receiver: "+msg);
+    }
+}
+
+
+
+测试代码
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes=SpringBootServerApplication.class)
+public class Test{
+
+    @Aurowired
+    private UserSender userSender;
+    @Autowired
+    private ProductSender productSender;
+    @Autowired
+    private OrderSender orderSender;
+   
+    @Test
+    public void test1(){
+      this.userSender.send("Hello RabbitMQ-userSender");
+      this.productSender.send("Hello RabbitMQ-productSender"); 
+      this.orderSender.send("Hello RabbitMQ-orderSender"); 
+
+    }
+}
+
+
+-------------------------------------------------------------------
+
+
+    Fanout交换器-广播
+
+配置文件
+
+Consumer:
+
+application.properties
+   spring.application.name=springcould-mq
+   spring.rabbitmq.host=192.168.1.12
+   spring.rabbitmq.port=5672
+   spring.rabbitmq.username=guest
+   spring.rabbitmq.password=guest 
+      
+   #设置交换器的名称
+   mq.config.exchange=order.fanout
+
+   #短信服务队列名称
+   mq.config.queue.sms=order.sms
+
+   #push队列名称
+   mq.config.queue.push=order.push
+ 
+
+@Component
+@RabbitListener(
+  bindings=@QueueBing(
+    value=@Queuue(
+        value="${mq.config.queue.sms}",
+        autoDelete="true"
+    ),
+    exchange=@Exchange(
+        value="${mq.config.exchange}",
+        type=ExchangeTypes.FANOUT
+    )
+  )
+
+) 
+public class SmsReceiver{
+    @RabbitHandler
+    public void process(String msg){
+        System.out.println("Sms:"+msg);
+    }
+
+}
+
+
+@Component
+@RabbitListener(
+  bindings=@QueueBing(
+    value=@Queuue(
+        value="${mq.config.queue.push}",
+        autoDelete="true"
+    ),
+    exchange=@Exchange(
+        value="${mq.config.exchange}",
+        type=ExchangeTypes.FANOUT
+    )
+  )
+
+) 
+public class PushReceiver{
+
+    @RabbitHandler
+    public void process(String msg){
+        System.out.println("Push:"+msg);
+    }
+
+}
+
+
+
+编写Provider:
+
+
+application.properties
+   spring.application.name=springcould-mq
+   spring.rabbitmq.host=192.168.1.12
+   spring.rabbitmq.port=5672
+   spring.rabbitmq.username=guest
+   spring.rabbitmq.password=guest 
+      
+   #设置交换器的名称
+   mq.config.exchange=order.fanout
+
+
+@Component
+Sender{
+
+    @Autowired
+    private AmqpTemplate rabbitAmqpTemplate;
+
+    @Value("${mq.config.exchange}")
+    private String exchange;
+
+    public void send(String msg){
+        this.rabbitAmqpTemplate.convertAndSend(this.exhcange,"",  msg);
+      
+    }
+}
+
+
+
+测试代码
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes=SpringBootServerApplication.class)
+public class Test{
+
+    @Aurowired
+    private Sender sender;
+   
+    @Test
+    public void test1(){
+      sender.send("Hello RabbitMQ");
+
+    }
+}
+
+-----------------------------------------------
+
+消息持久化
+
+@Queue
+autoDelete=true
+含义：当所有消费客户端连接断开后，是否自动删除
+队列，如果设置成true，表示删除；如果设置成false
+则表示不删除
+
+@Exchange
+当所有队列都不再使用时，是否自动删除交换器
+true：删除
+false：不删除
+
+---------------------------
+ACK确认机制
+如果消息的确认没有返回给RabbitMQ，则会进行重新发送
+，当得到确认，才将消息移除队列
+
+在配置文件中配置消息的重发次数
+
+#开启重试
+spring.rabbitmq.listener.retry.enabled=ture
+#重试的次数，默认为3次
+spring.rabbitmq.listener.retry.max-attempts=5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

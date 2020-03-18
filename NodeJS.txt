@@ -1,0 +1,152 @@
+NodeJS
+
+                                      何为Node.js
+
+
+1、node.js是什么
+      <1> 运行在服务器端的JavaScript,
+      <2> 它是基于Chrom JavaScript运行时建立的一个平台
+      <3> Node.js是一个事件驱动I/O服务端JavaScript环境，基于Google的V8引擎
+
+
+2、引入模块
+
+      ==================================
+      var http = require("http");
+      ==================================   
+
+3、下载并安装NodeJS
+
+	Windows版本
+      	下载免安装的版本，并将根目录加入到path环境变量中去
+
+4、在项目的目录建立自己的js文件
+   写js代码，如下意味着监听在8888端口的服务器如果发送http请求会返回helloworld：
+==========================================================
+	var http = require('http');
+	http.createServer(function(request,response) {
+		response.writeHead(200,{'Content-Type':'text/plain'});
+		response.end("HelloWorld!");
+	}).listen(8888);
+	console.log("Server running at http://127.0.0.1:8888/");
+=====================================================================
+5、在浏览器中键入地址
+      http://localhost:8888/
+
+6、NPM使用介绍
+
+6.1、什么是NPM
+
+  NPM 是随同NodeJS一起安装的包管理工具，能解决NodeJS代码部署上的很多问题，使用场景如下：
+  <1> 允许用户从NPM服务器下载别人编写的第三方包到本地应用
+  <2> 允许用户从NPM服务器下载并安装别人编写的命令行程序到本地使用
+  <3> 允许用户将自己编写的包或者命令行程序上传到NPM服务器供别人使用
+
+6.2、npm相关命令
+       查看npm版本 npm -v
+
+       升级mpm sudo npm install npm -g
+
+	windows使用以下命令 npm install npm -g
+
+7、npm命令安装模块
+   =======================
+      npm install <Module Name>
+   =======================
+      例如：
+      定位到安装目录下并启动命令行： npm install express (-g 全局安装)
+      在文件中引用 var express = require('express');
+
+8、查看安装信息
+   =============
+    npm list -g
+   =============
+   查看某个模块的版本号，使用命令如下 npm list express
+
+9、卸载模块 npm uninstall express
+
+10、更新模块 npm update express
+
+11、搜索模块 npm search express
+
+12、创建模块 npm init
+
+$ npm init
+This utility will walk you through creating a package.json file.
+It only covers the most common items, and tries to guess sensible defaults.
+
+See `npm help json` for definitive documentation on these fields
+and exactly what they do.
+
+Use `npm install <pkg> --save` afterwards to install a package and
+save it as a dependency in the package.json file.
+
+Press ^C at any time to quit.
+name: (node_modules) runoob                   # 模块名
+version: (1.0.0) 
+description: Node.js 测试模块(www.runoob.com)  # 描述
+entry point: (index.js) 
+test command: make test
+git repository: https://github.com/runoob/runoob.git  # Github 地址
+keywords: 
+author: 
+license: (ISC) 
+About to write to ……/node_modules/package.json:      # 生成地址
+
+{
+  "name": "runoob",
+  "version": "1.0.0",
+  "description": "Node.js 测试模块(www.runoob.com)",
+  ……
+}
+
+
+Is this ok? (yes) yes    
+
+
+================================
+npm adduser
+yg
+1992
+yanga@tft.com
+
+
+
+13、REPL交互式解释器
+
+
+13.1、REPL
+     Read Eval Print Loop 交互式解释器，表示一个电脑的环境，类似windows系统的终端或
+     Unix/Linux shell,我们可以在终端中输入命令，并接受系统的响应
+
+13.2、启动Node终端
+      ================
+      node
+      ================
+      >var x = 10
+      >var y = 11
+       >x+y
+13.3、多行表达式
+      var x=0
+     do{
+           x++;
+           console.log("x"+x);
+      }while(x<5);
+
+13.4、下划线变量
+      可以使用下划线_来获取表达式的运算结果
+      var x = 10
+      var y = 20
+      x+y
+      var sum = _
+      console.log(sum)
+
+13.5、REPL命令
+     ctrl+c 退出当前终端
+     ctrl+c 两下退出Node REPL
+     ctrl +d 退出 Node REPL
+     上下键盘 查看输入的历史命令
+     tab列出当前的命令
+     .help列出使用命令
+     .break 退出多行表达式
+ 

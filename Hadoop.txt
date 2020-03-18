@@ -1,0 +1,504 @@
+	
+		Hadoop
+
+
+一、 大数据生态系统
+
+1、存储
+     hadoop hdfs
+2、计算引擎
+     map/reduce v1
+     map/reduce v2
+     Tez
+     spark
+3、Impala Presto Drill   直接跑在hdfs上
+	pig（脚本方式） hive（SQL语言） 跑在map/reduce 上
+	hive on tez/sparkSQL
+4、流式计算 -storm
+5、kv store
+      cassandra  mongodb    hbase
+6、Tensorflow    Mahout
+7、Zookeeper  Protobuf
+8、sqoop kafaka  flume...
+
+二、大数据VS传统数据
+
+
+比较      |            传统数据              |                   大数据
+---------------------------------------------------------------------------
+数据量    |           GB->TB                 |          TB->PB      
+---------------------------------------------------------------------------
+速度      |           数据量稳定，增长不快   |          持续实时产生数据
+----------------------------------------------------------------------------
+多样化    |           主要为结构化数据       |          半结构化，非结构化
+-----------------------------------------------------------------------------
+价值      |           统计和报表             |          数据挖掘和预测性分析
+
+
+
+三、HDFS设计思想
+
+1、多个节点存储 块 的副本
+       block1：node1，node2，node3
+       block2：node2，node3，node4
+       block3：node5，node6，node7
+
+2、NameNode ：接受客户端的读写服务
+       NameNode保存metadate信息包括文件owership和permissions
+       文件包含哪些块，Block保存在哪个DataNode（由DataNode启动时上报）
+
+3、NameNode的metadate信息在启动后会加载到内存
+       (在内存中edits，在磁盘中fsimage)
+       metadata存储到磁盘的文件名为“fsimage”
+       Block的位置信息不会保存到fsimage
+       edits记录对metadata的操作日志
+       新增文件时不会马上写入fsimage，隔一段时间fsimage会与edits进行合并
+
+4、SecondaryNameNode(SSN)  一部分元数据的备份
+      主要工作是帮助namenode合并edits文件与fsimage文件时，合并之后得到一个新的fsimage，并传送给namenode，并替换原来的fsimage
+
+5、SSN合并的时机
+根据配置文件设置的时间间隔fs.checkpoint.period  3600秒
+根据配置文件设置edits log大小 fs.checkpoint.size 规定 edits文件最大值默认是64M
+
+6、DataNode存储数据 Block
+  启动DN线程的时候会向NN汇报block信息
+  通过向NN发送心跳保持与其联系（3秒一次），如果10分钟没有收到DN的心跳则认为其已经lost，并copy其上的block到其他DN
+
+7、Block副本的放置策略
+ -第一个副本：放置在上传文件的DN，如果集群外提交，则随机选择一台
+磁盘不太满，CPU不太忙的节点
+-第二个副本，放置在第一个副本不同的机架（同一个机架使用同一个电源）的节点上
+-第三个副本：与第二个副本相同机架的节点
+-更多副本：随机节点
+
+-----------------------------------
+  机架1
+-----------------------------------
+|     | 文件| |副本1   |  |
+-----------------------------------
+
+-----------------------------------
+ 机架2
+-----------------------------------
+|   | 副本2|    |副本3|       
+-----------------------------------
+
+四、初识Hadoop
+
+1、准备工作
+    virtualbox centos hadoop jdk xshell（xftp）
+2、搭建裸机
+     新建虚拟机linux--->redhat 64
+     在裸机上安装操作系统，虚拟光驱的使用
+
+
+五、网络配置
+
+
+1、设置ip修改为(设置ip和子网掩码)：
+	vim /etc/sysconfig/network-scripts/ifcfg-enp0s3
+	TYPE=Ethernet
+	IPADDR=192.168.56.100
+	NETMASK=255.255.255.0
+2、设置网关
+    vi /etc/sysconfig/network
+	NETWORKING=yes
+	GATEWAY=192.168.56.1 
+3、设置主机名
+    hostnamectl set-hostname master 
+    systemctl stop firewalld.service	
+4、重启网络
+   systemctl restart network	
+	
+5、ping机器，看是否通
+   在windows中：ping 192.168.56.100
+   在linux中ping：192.168.56.1   
+	
+6、利用xshell进行连接
+   	192.168.56.100
+	root/6789@jkl
+	
+六、Hadoop环境搭建
+
+1、将hadoop及jdk拷贝到/usr/local/下，该目录相当于programefile目录
+   hadoop-2.7.3.tar.gz ，jdk-8u131-linux-x64.rpm 
+   
+2、 安装jdk
+     
+     i代表安装 v代表verbase即详细信息 h代表安装时列出哈希标记
+     rpm -ivh jdk-8u131-linux-x64.rpm，默认装在/usr下的java中	
+
+3、安装hadoop
+     ，
+     	 cd /usr/local/
+     	 tar -xvf hadoop-2.7.3.tar.gz   
+	 
+	 重命名
+	 mv hadoop-2.7.3 hadoop-2
+	 
+	 cd /hadoop/etc/hadoop
+	 #在hadoop-env.sh中配置hadoop环境
+	 vi hadoop-env.sh
+	 
+	 JAVA_HOME=/usr/java/default
+	 
+	 #将hadoop的执行路径写到path环境变量中
+	 #全局环境变量，#/etc/profile
+	 
+	 vi /etc/profile
+
+	 末尾添加
+	 export PATH=$PATH:/usr/local/hadoop/bin:/usr/local/hadoop/sbin
+	 source /etc/profile
+	 
+	 #关闭机器
+	 
+	 #复制master为slave1，slave2，slave3
+	 #完全复制
+	 #复制完，启动slave1，slave2，slave3
+	 
+	 #设置ip地址
+	 #修改主机名
+	 hostnamectl set-hostname slave1
+	 #修改ip地址
+	 vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+	 IPADDR 192.168.56.101
+	 #重启网络
+	 service network restart
+	 #slave2，slave3同理
+	 
+	 #通过xshell远程连接master slave1 slave2 slave3
+	 #执行各个机器的网络重启命令
+	 service network restart
+	 
+4、 #启动master hadoop的namenode，其他slave的为datanode
+	namenode存文件名，datanode存文件内容，是数据真正存储的机器
+	
+5、配置 master hadoop
+   cd /usr/local/hadoop/etc/hadoop/
+   #配置core-site.xml，该文件配置管理者的信息，即master
+	<configuration>
+		<property>
+			<name>fs.defaultFS</name>
+			<value>hdfs://master:9000</value>
+		</property>
+	</configuration>
+	
+6、分别启动各个节点的hadoop
+
+   启动master节点
+   
+   #修改hosts文件
+   vi /etc/hosts
+   
+   #在后面添加ip即主机名
+   192.168.56.100 master
+   192.168.56.101 slave1
+   192.168.56.102 slave2
+   192.168.56.103 slave3
+   
+    #格式化
+	#master中格式化
+    hdfs namenode -format
+	#master中启动namenode
+    hadoop-daemon.sh start namenode
+
+    #查看是否启动
+    jps
+    #如果有NameNode说明启动了
+
+
+    #启动datanode
+    #在slave1-slave3中
+	hadoop-daemon.sh start datanode
+	
+	#查看进程
+	jps
+	#出现 DataNode表示启动成功
+	
+	#至此master namenode管理着三台datanode
+	
+	
+	
+七、逻辑结构图
+mastaer 192.168.56.100 namenode	
+	slave1:56.101 datanode1	
+	slave2:56.102 datanode2
+	slave3:56.103 datanode3
+
+namenode 存储文件系统元数据
+（文件目录结构、分块情况、每块位置、权限等）存在内存中
+
+查看节点情况
+hdfs dfsadmin -report
+    
+	 
+	 
+八、Hadoop集群搭建
+
+1、配置namenode
+>>cd /etc/hadoop
+>>vi core-site.xml
+添加：
+<configuration>
+   <!-- namenode的配置，在哪台机器上，端口是什么-->
+    <property>
+        <name>fs.default.name</name>
+        <value>hdfs://node1:9000</value>
+    </property>
+    <!-- 目的设置hadoop的工作目录-->
+   <!-- 很多的目录都以这个目录为基础-->
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/opt/hadoop-1.2</value>
+    </property>
+</configuration>
+
+
+>>cd /etc/hadoop
+>>vi hdfs-site.xml
+<configuration>
+    <property>
+        <!-- 配置副本的个数，默认的副本个数为3-->
+        <name>dfs.replication</name>
+        <value>2</value>
+    </property>
+</configuration>
+
+2、配置slaves节点
+>>cd /etc/hadoop
+>>vi slaves
+配置datanode的ip和主机名
+输入:
+node2
+node3
+
+3、配置secondarynode
+如在node2中进行配置
+vi masters
+
+4、配置免密码登录
+为远程登录到其他节点，并启动其他节点，为敲一个命令启动所有节点
+
+设置node1登录到node2，node3免密码
+
+在node1上生成秘钥
+在node1上生成
+$ ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
+
+// ~ 代表是当前用户目录
+如果以root用户登录
+则 cd /root/.ssh/ ，ls会有
+
+id_dsa     id_dsa_pub   known_hosts 三个文件
+第一个为私钥 ：自己使用的为私钥
+第二个为公钥 ：别人使用的为公钥
+
+more id_dsa_pub
+
+
+将公钥放到本地的日志文件中去（使得本地可免密登录）
+$ cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+
+
+5、分别在node2和node3上分别做上述的操作
+
+6、设置node1免密登录到node2
+
+从node1中敲命令：
+scp    id_dsa.pub  root@node2:~  （将公钥拷贝到node2机器上）
+
+然后将其内容追加到node2的authorized_keys文件中
+cat id_dsa.pub >> ~/.ssh/authorized_keys
+cd   .ssh
+more authorized_keys 
+检查是否已经追加成功
+
+在node1中测试是否可以免密登录
+ssh    node2 测试
+
+7、node1免密码登录到node3，做和6同样的操作
+
+8、启动namenode
+
+在node1中进入到hadoop的bin目录
+cd bin
+./start-dfs.sh 启动hdfs
+
+拷贝hadoop文件到node2和node3
+scp  -r  ~/hadoop-1.2.1.tar.gz  root@node2:~/
+scp  -r  ~/hadoop-1.2.1.tar.gz  root@node3:~/
+
+将hadoop配置文件拷贝到node2，node3
+scp  ./*   root@node2:/home/hadoop-1.2/conf
+scp  ./*   root@node2:/home/hadoop-1.2/conf
+
+
+拷贝完成
+
+配置JAVA_HOME
+cd conf
+vi hadoop-env.sh
+
+在文件中添加
+export JAVA_HOME=/某个路径
+
+在node1上的bin目录下
+hadoop namenode -format(进行格式化 只需要format一次)(在这之前需要在node1，node2，node3没有配JAVA_HOME)
+
+需要关掉node1，node2，node3的防火墙
+
+./start-dfs.sh（关闭 ./stop-dfs.sh）
+
+
+9、在window中修改域名
+在hosts文件中添加
+
+192.168.239.3   node1
+192.168.239.4    node2
+192.168.239.5     node3
+
+10、访问
+http://node1:50070
+
+九、安全模式
+namenode启动的时候，首先将映像文件fsimage
+载入内存，并执行编辑日志（edits）中的各项操作
+
+一旦内存中成功建立文件系统元数据的映射，则创建一个新的fsimage文件
+和一个空的编辑日志
+
+此刻namenoe运行在安全模式，即namenode的文件系统对于客户端来说是
+只读的（显示目录，显示文件内容等，写、删除、重命名都会失败）
+
+在此阶段namenode收集各个datanode的报告，当数据块达到最小副本数以上时
+会被认为是安全的，在一定比例（可设置）的数据块被确认安全后，再过
+若干时间，安全模式结束
+
+当检测到副本数不足的数据块时，该块会被复制直到
+达到最小副本数，系统中数据块的位置并不是由namenode
+维护的，而是以块列表的形式存储在datanode中
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 	
+	
+	
+	
+	
+	
+	
+	
+	

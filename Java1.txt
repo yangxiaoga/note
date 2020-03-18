@@ -1,0 +1,665 @@
+  
+
+一、运算符
+	如果整数和浮点数想比较，且二者的值相等的话，==比较将返回true
+
+二、向方法传递变量 
+
+	基本类型变量
+		使用变量副本
+
+	引用类型变量
+		传递一个表示对象引用的副本，被调用方法得到自己的引用变量副本并处理它，
+		可以对引用变量的副本进行重新赋值，但无法对原来的引用变量重新赋值
+
+三、线程
+	只要线程已经启动过，他就永远不能再次启动
+    	 一个Thread 运行run结束，再次调用start方法会抛出，IllegalThreadStateException
+	可运行线程变成运行中线程的顺序是没有方法保证的
+
+	线程的状态
+		新状态
+		可运行状态
+		运行中状态
+		死状态
+		等待、阻塞、睡眠状态
+	sleep方法
+
+	线程优先级和yield
+		yield让当前的运行中线程回到可运行状态，以允许同优先级的线程获得运行机会
+
+	join方法
+	让一个线程加入到另一个线程的尾部，即在前一线程完成之前，后者不会变为可运行的
+
+
+
+	writer = new FileWriter(file,true);
+    	writer.write(uuid);
+    	writer.write("\r\n");  方法执行后还没有写入
+    	writer.flush();        使用flush是将数据写入
+  
+
+
+
+四、 耦合与内聚    
+
+	什么是耦合
+		一个类了解另一个类的程度，如果类A对类B的了解仅限于，类B通过其接口公开的信息，那么类A和类B是松耦合的 
+
+       什么是内聚
+		一个类具有单一的、明确目标的程度
+
+
+五、面向对象
+
+1、继承的使用
+     促进代码的复用
+     使用多态性          可以将子类视作一种父类
+
+2、IS-A关系
+     表达这个东西是那个东西的一种
+     一个类不能扩展多个类，这意味着每个类只能有一个超类，但是一个类可以有多个祖先
+
+3、多态方法的调用
+       多态方法调用仅适应于实例方法。
+       总是可以利用更一般的引用变量类型（超类或接口）引用一个对象，
+       但是在运行时，基于实际对象（而不是引用类型）动态选择的唯一事物是
+       实例方法，而不是静态方法，也不是变量。
+       只有基于实际对象的类型动态的调用重写的实例方法
+
+4、重写和重载
+
+     4.1 重写方法
+      抽象方法是必须重写的方法
+      重写方法不能有比被重写方法更具限制性的访问修饰符，（如不能将一个标识为public的方法重写为protected）
+      重写方法一定不能抛出比被重写方法声明的检验异常更新或更广的检验异常
+       
+      调用被重写方法的超类版本
+      super.func();
+      使用super调用被重写方法只适用于实例方法（静态方法不能被重写）
+
+      4.2 重载方法
+            重载的规则
+            必须改变变元列表
+            可以改变返回类型
+            可以改变访问修饰符
+            可以声明新的或者更广的检验异常
+ 
+            决定调用哪一个重载方法不是在程序运行时动态决定的
+              
+5、构造函数和实例化
+
+     5.1 注意
+             包括抽象类，每一个类都必须有一个构造函数
+             接口没有构造函数，因为接口不是对象继承树的一部分
+             如果实现了自己的构造函数
+             那么编译器不会创建默认的构造函数
+
+             永远不要继承构造函数，他们不是方法，不能重写他们
+             但是可以重载构造函数
+                                            
+             构造函数的第一行必须调用super（）或this（）
+
+
+           
+六、类声明和修饰符
+	1、访问修饰符
+ 	public 、protected 、private 、default(默认不需要声明)
+ 	1.1 default 
+        具有默认访问只能被同一包中的类看到
+        当视图import一个默认访问的类时
+        The type com.defa.pack.Defaul is not visible
+
+  	1.2 public 公共访问
+        声明为public公共访问的类为来自所有的包的所有的类提供对公共类的访问，但如果使用者和公共类不再同一个包中，仍然需要import
+
+	2、非访问修饰符
+ 	2.1  几种非访问修饰符
+        strictfp  final abstract
+
+ 	final类
+        	该类不能再有子类（即不能被子类化，即不能再被扩展）
+ 	abstract 抽象类
+        	abstract类永远不会被实例化，只用于拓展，不能将一个类标识为abstract final ，他们有着近乎相反的意义
+
+七、类成员
+
+1、种类
+ 1.1 基本类型
+ 1.2 数组
+ 1.3 枚举
+ 1.4 对象
+
+2、变量类型
+ 2.1 静态变量
+ 2.2 实例变量
+ 2.3 局部变量
+
+3、可以使用的访问控制
+
+ 1.1 public  所有其他类都能访问
+ 1.2 protected
+ 1.3 默认的
+
+	protected和默认访问控制级别几乎完全相同，但区别是，只有当访问默认成员的类属于同一个包时，才能访问默认成员
+       	默认成员只对与超类处于同一个包中的子类来说是可见的，对不同包的该类的成员是无法访问的
+       
+       对于protected成员来说即使子类位于不同的包中，该子类也能访问它，只有在讨论子类时，默认和保护行为才有区别
+       因为即使是import了protected成员在其他类中也是看不到的除非继承，对于包外子类，只能通过继承访问保护成员，不能使用超类引用访问保
+       护成员一旦包外子类继承保护成员，该成员对这一子类外的任何代码来说都变成私有的，但对该类的子类不是这样的。
+
+
+ 1.4 private 不能被声明该私有成员的类以外的任何类中的代码访问，当成员声明为私有时，子类不能继承它，但是可以在子类中声明相同的方
+     法，但这并不是重写
+
+
+ 1.5 局部变量可以使用访问修饰符吗-绝对不行
+     只有final是可以的
+
+静态成员
+1、静态变量
+     	如果有实例，则类的静态变量将被该类的所有实例共享，但只有一个副本
+	不能从静态方法中访问非静态（实例）变量 
+	静态方法不能被重写，但是可以重新定义
+
+
+八、接口
+1、访问修饰符
+ 1.1 接口中的方法隐含都是公共的和抽象的
+ 1.2 接口中定义的所有变量必须是公共的、静态的、最终的，即接口中只能声明常量，而不能声明实例变量
+ 1.3 接口的方法一定不能是静态的
+ 1.4 接口的方法是抽象的，所以不能标识为final、strictfp或native
+ 1.5 接口可以拓展一个或多个其他接口
+ 1.6  接口不能拓展除了其他接口之外的任何内容
+ 1.7  接口不能实现另一个接口或类
+
+九、集合
+1、ArrayList
+    java.util.ArrayList 所具有的特点
+   可以动态增长
+   提供更强大的插入和查找机制
+   在添加基本类型时，会有自动装箱的操作
+
+
+十、非访问修饰符
+1、种类
+ 1.1 final
+ 1.2 synchronized
+ 1.3 strictfp
+ 1.4 native
+
+2、详解
+      2.1 final
+             final方法
+             为防止子类对方法进行重写,如：public void final test(){}
+             方法变元 如：public void setT（int final methodIndex）
+             抽象类可以不带抽象方法，但只要有抽象方法，该类必须是一个抽象类
+             抽象类的第一个具体子类必须实现超类的所有抽象方法
+ 1.2 synchronized
+       只能应用于方法，不能应用于变量和类
+ 1.3 strictfp
+        能够修饰类和方法声明，不能修饰变量
+
+十一、泛型
+
+1、多态与泛型
+   class Parent {}
+   class Child extends Parent {}
+   List<Parent> p = new ArrayList<Child>() 是不合法的
+   规则：变量声明的类型必须匹配传递给实际对象的类型
+
+2、泛型方法
+ List<? extends Thread>，<? extends Thread> 是继承Thread的某个类
+ List<?  super T>, <?  super T> 是T的某个父类
+
+
+通配符？ 
+	只可以针对引用声明使用，当创建一个新的类型化集合时，他们不能用作类型参数
+	因为创建的实际对象必须是具体类型的
+
+
+十二、抽象类以及抽象方法
+
+1、原则
+	抽象类不能使用new实例化
+	抽象类不一定包含抽象方法，但包含抽象方法要声明为abstract抽象类，可包含构造方法，但不能声明为抽象。
+	不能用final修饰，即不能同时是abstract final
+	abstract 不能与private static final native并列修饰同一个方法
+
+2、对子类的要求
+     在继承后可以有两种选择
+	部分实现，或者完全不实现父类所有的抽象方法，子类必须声明为抽象类
+	实现所有，不必声明为抽象类
+
+3、接口的所有方法都是抽象的，抽象类至少有一个抽象方法
+   可以有构造方法，接口不能
+
+十三、标识符的规范
+
+1、标识符以字母、货币符号或连字符（如下划线）开头，不能以数字开头
+2、不能使用关键字
+3、Java对大消息敏感
+4、对于类，其名称通常为名词
+5、对于接口名称通常为形容词如Runable，Serializable
+6、方法首字母小写，通常为动词-名词对getBalance
+7、变量 名词-名词 如buttonWidth
+8、常量   大写字母，并以下划线分割
+9、每个源代码文件只能有一个public类
+
+
+十四、变量声明
+
+1、种类
+ 1.1 基本变量
+       boolean、byte、int、short、long、char、double、float
+       一旦声明一个基本变量，就永远不能更改其基本类型
+
+ 1.2 引用变量
+       1.2.1 实例变量
+                 只有实例化类时才会被初始化
+                 实例变量是属于每一个对象的字段
+ 1.3 局部变量
+       方法内声明的变量，可以用final修饰
+       局部变量没有默认值，在使用局部变量之前，需要进行初始化
+       非局部变量：final、public、private、protected、static、transient、voatile
+       方法：final、public、private、protected、static、abstract、synchronized、strictfp、native
+
+	transient 序列化时跳过该变量
+
+十五、包装器类
+1、包装器构造函数
+   除Character之外，所有包装器类都提供两个构造函数 ，一个以要构建的基本类型作为变元，另一个以要构建类型的String表示作为变元
+   
+      Integer i = new Integer（42）；
+      Integer i1 = new Integer（“42”）；
+      Charactor c = new Charactor('c');
+
+2、valueOf
+   多数包装器类都提供两个静态valueOf 方法，从而使我们能用另一种方法来创建包装器对象
+
+
+如 Integer i = Integer.valueOf("1010",2) 以二进制为基数
+   Float f =     Float.valueOf("3.24")
+
+3、使用包装器转换试用工具
+
+	Integer i = new Integer（42）
+	byte  b = i.byteValue();
+	short s = i.shortValue();
+	double d = i.doubleValue();	
+
+4、parseXX
+
+	parseXX（）方法返回所指定的基本类型
+	valueOf()_ 返回新创建的包装对象，对象的类型与调用该方法的类型相同
+
+
+5、不能从一种包装类型加宽到另一种包装类型
+      不能先加宽，后装箱（int不能变成Long）
+      可以先装箱，后加宽（int可以通过Integer变成Object）
+
+
+十六、StringBuffer和StringBuilder
+	StringBuffer是线程安全的，StringBuilder是非线程安全的
+
+String StringBuffer与StringBuilder之间的关系
+
+                               CharSequence
+-------------------------------------------------------------------------------
+|                                                                             |
+String                                                             AbstractStringBuilder
+                                                            ---------------------------------------
+                                                           |                                       |
+                                                      StringBuilder                       StringBuffer 
+
+CharSequence
+public interface  CharSequence{
+       int length();                
+      char charAt(int index); //在指定位置的字符
+      CharSequence subSequence(int start,int end);
+     public String toString();
+}
+
+
+
+
+十七、Java之String
+
+1、实现的接口
+
+（1）实现了 java.io.Serializable Comparable<String> CharSequence
+
+（2）CharSequence是一个接口，它只包括length(), charAt(int index), subSequence(int start, int end)这几个API接口。
+ 除了String实现了CharSequence之外，StringBuffer和StringBuilder也实现了CharSequence接口。
+
+（3）字符的存储final char[] 字符数组
+
+
+在ObjectStreamField.class（用于声明序列化字段）中对switch语句的使用
+        switch (signature.charAt(0)) {
+            case 'Z': type = Boolean.TYPE; break;
+            case 'B': type = Byte.TYPE; break;
+            case 'C': type = Character.TYPE; break;
+            case 'S': type = Short.TYPE; break;
+            case 'I': type = Integer.TYPE; break;
+            case 'J': type = Long.TYPE; break;
+            case 'F': type = Float.TYPE; break;
+            case 'D': type = Double.TYPE; break;
+           //只要没有break语句程序会继续向下执行
+            case 'L':
+            case '[': type = Object.class; break;
+            default: throw new IllegalArgumentException("illegal signature");
+        }
+
+构造方法
+
+ 无参构造方法
+public String(){
+   this.value=new char[0];   //将字符数组的第一个元素的地址赋值给value字符数组      
+}
+
+有参构造方法
+复制到一个新的数组给value，为了在改变原有传递过来的数组的情况下，不改变新的数组的内容
+public String(char value[]){
+   this.value=Array.copyOf(value,value.length)；
+}
+
+构造String,从字符数组value下标为offset位置开始截取，截取count个字符
+public String(char value[], int offset, int count) {
+        if (offset < 0) {
+            throw new StringIndexOutOfBoundsException(offset);
+        }
+        if (count < 0) {
+            throw new StringIndexOutOfBoundsException(count);
+        }
+        // Note: offset or count might be near -1>>>1.
+        if (offset > value.length - count) {
+            throw new StringIndexOutOfBoundsException(offset + count);
+        }
+        this.value = Arrays.copyOfRange(value, offset, offset+count);
+    }
+最终会使用 到System的 native方法
+ arraycopy(Object src,int srcPos,Object desc,int destPos,int length)
+从src的 srcPos复制到desc 的destPos复制长度为length，如果length超发过src的长度，只复制src的长度的数组
+
+
+    public byte[] getBytes(String charsetName)
+            throws UnsupportedEncodingException {
+        if (charsetName == null) throw new NullPointerException();
+        return StringCoding.encode(charsetName, value, 0, value.length);
+    }
+    equals方法
+    public boolean equals(Object anObject) {
+        if (this == anObject) {
+            return true;
+        }
+        if (anObject instanceof String) {
+            String anotherString = (String) anObject;
+            int n = value.length;
+            if (n == anotherString.value.length) {
+                char v1[] = value;
+                char v2[] = anotherString.value;
+                int i = 0;
+                while (n-- != 0) {
+                    if (v1[i] != v2[i])
+                            return false;
+                    i++;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+
+十八、Java之Object
+
+1、java.lang.Object
+	1.1  什么是native关键字
+          一个native method就是一个java调用非java代码的接口，该方法有非java语言实现，
+	  比如C，定义一个native method时，不提供实现体（因为实现由非java语言实现）native method
+          的存在并不会对其他类调用这些本地方法产生任何影响，实际上调用这些方法的其他类甚至不知道
+	  它所调用的是一个本地方法。JVM将控制调用本地方法的所有细节。
+
+2、主要的方法
+     native getClass()、hashCode()、 equals()、clone()、toString()、 
+     notify()、wait()、finalize()
+
+     2.1 getClass 返回此Object的运行时类
+            
+     clone方法解析：
+        深拷贝与浅拷贝
+       	如一个对象的属性name可能是String类型的，则clone只是复制了引用，指向的地址仍旧是第一个name字符串的地址
+
+	clone是不可见的
+	如果子类中需要是同clone方法需要实现Cloneable接口，调用super.clone()方法，而且在遇到字符串时，
+	clone后属性指向的是同一内存地址，即clone拷贝为浅拷贝。
+
+如下：
+package com.timer;
+//实现Cloneable接口
+public class Person implements Cloneable{
+	private String name;
+	private int age;
+	public Person(){
+	}
+	public Person(String name,int age){
+		this.name=name;
+		this.age=age;
+	}
+	public String getName(){
+		return this.name;
+	}
+	public Person clone() throws CloneNotSupportedException{
+		                //调用父类的clone方法
+				return (Person)super.clone();	
+    }
+}
+
+===========================================================
+
+主方法：
+   public static void main(String[]  args){
+
+	   try {
+		Person p = new Person("张三",12);
+		//如果没有实现Cloneable接口，提示clone（声明的访问权限为protected）方法对子类是不可见的
+		Person p1 = (Person)p.clone();
+		System.out.println(p);
+		System.out.println(p1);	
+		System.out.println(p.getName()==p1.getName());//打印为true，浅拷贝
+	} catch (CloneNotSupportedException e) {
+		e.printStackTrace();
+	}
+   }
+=========================================================
+深拷贝
+要想深拷贝，需要在方法中，就new吧、或者串行化
+
+
+1、java.lang.Object
+2、java.lang.Class
+3、java.lang.Boolean封装了一个值对象的基本布尔型，Boolean类型的对象，包含一个单一的字段中，其类型为布尔值
+
+public final class Boolean extends Object implements Serializable，Omparable
+
+构造函数
+
+Boolean(boolean value)
+Boolean(Stirng s)
+
+十九、IO
+
+1、File类
+     文件和目录路径名的抽象表示，它不用于实际的读或者写数据，而是在更高级别上工作
+     即建立新的文件、查找文件、删除文件、创建目录、以及使用路径
+
+   表示实际的文件或目录（而不是文件中的数据），当创建一个File实例时，并没有创建实际的文件，而只是创建了一个文件名
+   createNewFile()方法 会创建实际的文件
+
+   创建目录
+   File file = new File("d:\\bak\\tt\\");
+   file.mkdir();
+
+   创建文件 
+	File file1 = new File("d:\\bak\\tt\\","11.txt");
+	file1.createNewFile();
+
+
+2、FileReader
+    读取字符文件，由高级的对象包装如BufferedReader
+
+3、FileWriter 写入字符文件，由高级的Writer对象包装
+    如BufferedWriter、PrintWriter
+    BufferedWriter 提供了newLine()方法自动创建平台特有的行分隔符
+
+
+二十、final和static关键字
+
+1、final
+（1）final类不能被继承，没有子类
+     如果继承了，会提示 The type TestFinalClass cannot subclass the final class FinalClass
+     就是不能继承一个final修饰的类
+（2）final类中的方法默认是final的
+（3）final方法不能被子类的方法覆盖，但可以被继承
+     只要出现了重写，将会提示Cannot override the final method from ThatClass（不是final类，   有final方法）
+（4）final成员变量标识常量，只能被赋值一次，赋值后值不再改变
+（5）final方法不用于修饰构造方法
+     Illegal modifier for the constructor in type FinalClass; only public, protected & private are permitted
+
+使用final方法的原因
+1、把方法锁定，防止继承类进行修改实现
+2、高效，编译器遇到final方法的时候会转入内嵌机制，大大提高执行效率
+
+static关键字
+
+全局或者静态的意思，用于修饰成员变量和成员方法，也可以形成静态static代码块
+被static修饰的成员变量和成员方法独立于该类的任何对象，不依赖与类的特定实例，只要这个类被加载，java虚拟机根据类名在运行时数据区的方法区内找到他们
+
+
+static代码块
+也叫静态代码块，位置随意，不在任何的方法体内，jvm加载类时会执行这些静态的代码块，如果有多个static代码块，jvm按照他们在类中出现的先后顺序依次执行他们，
+每个代码块只会被执行依次
+
+作用:利用静态代码块对static变量进行赋值
+static final修饰的容器类如ArrayList中装的对象是可以改变的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

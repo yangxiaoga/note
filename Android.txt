@@ -1,0 +1,347 @@
+﻿                                    Android初识
+1 、目录
+	src
+        	MainActivity 主视图
+          res
+               layout  布局文件
+                       activity_main.xml
+               AndroidManifest.xml 核心配置文件
+
+2 、 HelloAndroid
+
+    	在activity_main.xml中添加一个按钮，并修改
+	<Button
+    		android:id="@+id/button1"
+    		android:layout_width="match_parent"
+    		android:layout_height="wrap_content"
+    		android:text="发送信息"
+    		android:onClick="clickHandler" />
+    	在MainActivity.java中添加点击事件执行的函数clickHandler
+
+	public class MainActivity extends AppCompatActivity {
+		@Override
+    		protected void onCreate(Bundle savedInstanceState) {
+        		super.onCreate(savedInstanceState);
+        		setContentView(R.layout.activity_main); }
+    		public void clickHandler(View view){
+       	 	Toast.makeText(MainActivity.this,"发消息",Toast.LENGTH_SHORT).show();
+   	 	}
+	}
+
+3、DDMS相关
+
+
+	日志的使用
+       		Log.代号（标签，信息）
+       	 	例如：
+        	Log.i("myinfo",“i excute”)
+        	Log.e("error","msg");
+        	Log.d("debug","debug msg")
+	
+
+4、Notification
+	Notification通知可以显示到系统上方的状态栏中通知内容显示分为两个部分：
+	notification area（通知状态栏）
+	notification drawer （抽屉）通知列表页面
+
+	某些信息不需要用户马上处理，可以利用通知，即延迟消息
+		比如：软件的更新，短信，新闻之类的
+
+	Content titile内容的标题
+	Large Icon 图标
+	content Text 内容
+	content info
+	Small Icon 
+	time发送时间
+
+	案例
+
+	<Button
+    	android:id="@+id/button2"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="点击获取notification"
+    	android:onClick="getNotification"/>
+
+
+
+5、Toast
+
+	特点
+       		没有焦点
+       		显示时间有限，会自动消失
+
+	使用
+	Toast toast = Toast.makeText(this,"msg",1).show();
+	//设置位置
+	toast.setGravity(Gravity.CENTER,0,0)
+
+	第一个参数：上下文对象Context
+        this 或者this.getApplicationContext()
+        this 代表当前的activity对象
+	Activity本身就是一个Context对象
+
+	Context提供了关于应用环境全局信息的接口，它是一个抽象类，他的实现由Android系统所提供
+	通过context我们可以加载资源，获取由android系统提供的一些服务类
+
+	在android中一般有两种context：
+		application Context 生命周期长
+		activity Context    生命周期短
+
+	Activity的Context------> request（类比）
+	ApplicationContext----->Application（类比）
+
+
+	如何选择使用哪一个
+    	 getApplicationContext()
+     	当对象需要生存的时间长一点，考虑用getApplicationContext()
+      	但是都绑定到此，可能会引发内存泄漏
+
+
+
+6、UI线程阻塞
+	阻塞原因
+      	当一个程序启动后，android系统会为这个应用程序，创建一个主线程，这个线程非常重要，
+	它负责渲染视图分发事件到响应监听器并执行，对界面进行轮询的监听
+	因此，一般也叫做UI线程
+
+	android系统不会给应用程序的多个元素组件，建立
+	多个线程来执行，一个视图activity中的多个view组件运行在同一个UI线程当中。
+	因此，多个view组件的监听器的执行可能会相互影响
+
+	如何解决：在方法中新建一个线程
+     		  post view.post 方法
+
+   	new OnClickListener(){
+              new Thread(
+		new Runnable(){
+			@Override
+			public void run(){
+				v.post(
+					new Runnable(){
+						@Override
+						public void run(){
+							TextView view = (TextView)v;
+                                                        view.setText(" "+10);
+                                                 }
+                                          }
+                                  );
+
+                        }
+               	}
+              ).start();
+   	}
+
+       执行过程：该线程线执行完，post再执行，post可读性差，维护性也差
+        
+       AsyncTask
+
+	public class MainActivity extends AppCompatActivity {
+    	//为使得内部类也可以使用
+    	private Button button1 = null;
+    	@Override
+    	protected void onCreate(Bundle savedInstanceState) {
+        	super.onCreate(savedInstanceState);
+        	setContentView(R.layout.activity_main);
+        	button1 = (Button)findViewById(R.id.button1);
+        	button1.setOnClickListener(myListener);
+
+    	}
+   	//实现监听器
+    	private View.OnClickListener myListener = new View.OnClickListener() {
+       	 	@Override
+       	 	public void onClick(View view) {
+              		//使用异步任务
+              		new MyAsyncTask().execute();
+        	}
+   	 };
+    	//实现异步任务类
+    	private class MyAsyncTask extends AsyncTask<String,Void,Integer>{
+        	protected Integer doInBackground(String... urls){
+                	try {
+                   	 	Thread.sleep(5000);
+                	}catch(InterruptedException e){
+                    		e.printStackTrace();
+                	}
+                	int sum = 10;
+                	//返回后台执行结果
+                	return sum;
+       	 	}
+        	protected void onPostExecute(Integer result){
+            		//得到结果，设置view
+            		button1.setText(""+result);
+        	}
+   	 }
+
+	
+7、安卓目录结构分析
+	在activiry中适用findViewById方法查找组件
+      	在layout中，适用@string查找字符串
+	认识R类
+
+	资源国际化
+		在res valus目录下，建立文件夹 values-zh-rCN
+		在默认的value目录下的strings.xml 加入
+		<string name="msg">欢迎您</string>
+
+	在新创建的values-zh-rCN 目录下建立strings.xml
+	并加入 welcom
+	<string name="msg"> welcom/string>
+
+
+	在activity_main.xml中进行引用
+
+	@string/msg
+	<Button
+    	android:id="@+id/button1"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/msg"
+    	android:onClick="test" />
+
+
+
+8、Manifest.xml 核心配置文件
+
+     模拟器读取信息
+     Activity 像javascript
+     Layout 像html
+      R类管理布局资源layout，strings，images，mp3
+          
+
+9、常见事件
+
+	动态绑定
+      		通过findViewById的方式
+     		以及通过R文件的优势获得控件
+      		并对控件的点击事件进行绑定
+	protected void onCreate(Bundle savedInstanceState) {
+    		super.onCreate(savedInstanceState);
+    		setContentView(R.layout.activity_main);
+    		Button button1 = (Button)findViewById(R.id.button1);
+    		button1.setOnClickListener(
+            new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(MainActivity.this,"button1 Click",Toast.LENGTH_SHORT).show();
+                }
+            }
+    		);
+	}
+
+	activity_main.xml文件内容
+	<Button
+    	android:id="@+id/button1"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/msg"/>
+
+	配置方式
+
+	<Button
+    	android:id="@+id/button1"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:text="@string/msg"
+    	android:onClick="test"/>
+
+	在MainActivity中添加代码 test的实现          
+
+	public void test(View view){
+    		Toast.makeText(MainActivity.this,"发消息",Toast.LENGTH_LONG).show();
+	}
+
+	可复用的实现方式
+       	存在多个同一类控件的绑定
+
+	//实现自定义的OnClickListener
+	private View.OnClickListener clickListener = new View.OnClickListener() {
+    		@Override
+    		public void onClick(View view) {
+      		Toast.makeText(MainActivity.this,String.valueOf(view.getId()),Toast.LENGTH_SHORT);
+    		}
+	};
+
+    	@Override
+   	protected void onCreate(Bundle savedInstanceState) {
+        	super.onCreate(savedInstanceState);
+        	setContentView(R.layout.activity_main);
+        	Button button1 = (Button)findViewById(R.id.button1);
+        	button1.setOnClickListener(clickListener);
+
+    	}
+
+
+	长按事件 OnLongClickListener
+
+	button1.setOnLongClickListener(new OnLongClickListener(){
+    		@Override
+    		public boolean onLongClick(View view){
+          		return false; 
+   		}
+	});
+
+	如果返回false,则事件继续传播
+	如既绑定单击事件，又绑定长按事件,则返回false，
+	长按事件执行后，还会执行单击事件
+
+	如果返回true
+	后面其他的响应事件不会产生
+
+
+	触摸事件 OnTouchListener
+	元事件：action_down,action_move,action_up
+	点击 	移动  	松开
+	由motionEvent进行记录
+
+	private View.OnTouchListener touchListener = new View.OnTouchListener() {
+    		@Override
+    		public boolean onTouch(View view, MotionEvent motionEvent) {
+
+ 			int actionType = motionEvent.getAction();
+ 			if(actionType==MotionEvent.ACTION_DOWN){
+     				Toast.makeText(MainActivity.this,"DOWN",Toast.LENGTH_SHORT).show();
+ 			}
+ 			if(actionType==MotionEvent.ACTION_MOVE){
+     				Toast.makeText(MainActivity.this,"MOVE",Toast.LENGTH_SHORT).show();
+ 			}
+ 			if(actionType==MotionEvent.ACTION_UP){
+     				Toast.makeText(MainActivity.this,"UP",Toast.LENGTH_SHORT).show();
+ 			}
+ 			return true;
+ 		}
+	};
+
+	焦点事件 setOnFocusChangeListener
+	键盘事件
+
+	setOnKeyListener(
+  		new OnKeyListener(){
+      		public boolean onKey(View view,int keyCode,KeyEvent keyEvent){
+              		return false;
+      		}
+	)
+
+10、 进程和线程
+	进程：操作系统结构的基础，资源分配的最小单元
+	线程：线程存在于进程中，是操作系统调度执行的最小单位
+
+	当启动一个android应用启动，系统会启动一个进程和一个主线程来
+	运行这个应用。android系统会尽力保持这个进程的稳定和安全，当内存不足
+	需要杀掉一些进程时，在android进程管理中，设置了进程的有限级别
+	需要回收内存时，就杀掉低优先级的进程
+
+	五个优先级
+		Foreground process 常见的比如，用户正在操作的界面
+		Visible process 
+                常见的比如，用户从一个程序切换到另一个程序，就得程序被
+                替换，但是可恢复的，如电子书被电话打断，但是电子书是Visible process
+                或者看电子书时接收到短信
+
+		Service process
+              	常见的比如：边放音乐，变看电子书，音乐的service
+		Background process
+               	定时检查更新
+		Empty process 缓存进程
+        	进程的重要级别在运行过程中有可能随时变化     
+

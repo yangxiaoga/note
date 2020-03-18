@@ -1,0 +1,954 @@
+
+		css
+
+
+1、盒模型
+
+width： 包含边界的部分
+height：包含边界的部分
+border-box 宽高就是设定的值
+clear:设置一个元素的侧面是否允许其他浮动元素
+清除浮动只会改变改元素自身的位置，并且只针对排在该元素前面的元素。目的是让自己的左边或者右边没有浮动元素
+
+弹性盒模型
+	display:box;
+     	display: -moz-box;
+     	display:-webkit-box;
+
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+      #container{
+          /*
+          多列显示，列的宽度是相同的
+          -moz-column-count:3;
+          -webkit-column-count:3;
+          */
+          /*定义弹性盒式布局*/
+          display:-moz-box;
+          display:-webkit-box;
+      }
+        #left-slidebar{
+            width:200px;
+            padding:20px;
+            background-color:blue;
+        }
+        #contents{
+            /*定义中间宽度为自适应显示*/
+            -moz-box-flex:1;
+            -webkit-box-flex:1;
+            padding:20px;
+            background-color:yellow;
+        }
+        #right-slidebar{
+            padding:20px;
+            background-color:green;
+        }
+    </style>
+</head>
+<body>
+  <div id="container">
+      <div id="left-slidebar">
+          this is the left-slidebar
+      </div>
+      <div id="contents">
+          this is contents
+      </div>
+      <div id="right-slidebar">
+          this is the right-slidebar
+      </div>
+  </div>
+</body>
+</html>
+
+
+
+2、模块大小自适应
+
+    <style type="text/css">
+      #container{
+
+          /*定义弹性盒式布局*/
+          display:-moz-box;
+          display:-webkit-box;
+          border:solid 1px red;
+          /*vertical 垂直方向排列*/
+          /*horizontal 水平方向排列*/
+          -moz-box-orient:vertical;
+          -webkit-box-orient:vertical;
+          width:800px;
+          height:500px;
+
+      }
+        #left-slidebar{
+
+            background-color:blue;
+        }
+        #contents{
+            background-color:yellow;
+        }
+        #right-slidebar{
+            background-color:green;
+        }
+        #left-slidebar,#contents,#right-slidebar{
+            -moz-box-sizing:border-box;
+            -webkit-box-sizing:border-box;
+            font-size:1.5em;
+            font-weight:bold;
+            /*如果水平方向排列就自适应高度*/
+            height:150px;
+            /*如果竖直排列就自适应宽度 width:150px;*/
+        }
+    </style>
+</head>
+<body>
+  <div id="container">
+      <div id="left-slidebar">
+          this is the left-slidebar
+      </div>
+      <div id="contents">
+          this is contents
+      </div>
+      <div id="right-slidebar">
+          this is the right-slidebar
+      </div>
+  </div>
+</body>
+</html>
+
+
+3、消除空白
+    <style type="text/css">
+      #container{
+          /*定义弹性盒式布局*/
+          display:-moz-box;
+          display:-webkit-box;
+          border:solid 1px red;
+          /*vertical 垂直方向排列*/
+          -moz-box-orient:vertical;
+          -webkit-box-orient:vertical;
+          width:800px;
+          height:500px;
+
+      }
+        #left-slidebar{
+            height:100px;
+            background-color:blue;
+        }
+        #contents{
+            /*中部内容设置自适应*/
+            -moz-box-flex:1;
+            -webkit-box-flex:1;
+            background-color:yellow;
+        }
+        #right-slidebar{
+            height:100px;
+            background-color:green;
+        }
+        #left-slidebar,#contents,#right-slidebar{
+            -moz-box-sizing:border-box;
+            -webkit-box-sizing:border-box;
+            font-size:1.5em;
+            font-weight:bold;
+            /*如果水平方向排列就自适应高度*/
+            height:150px;
+            /*如果竖直排列就自适应宽度 width:150px;*/
+        }
+    </style>
+</head>
+<body>
+  <div id="container">
+      <div id="left-slidebar">
+          this is the left-slidebar
+      </div>
+      <div id="contents">
+          this is contents
+      </div>
+      <div id="right-slidebar">
+          this is the right-slidebar
+      </div>
+  </div>
+</body>
+
+
+
+4、定位
+
+	relative 相对定位
+    		元素相对父节点偏移某个举例，元素仍保持其未定位前的形状，它原本所占的
+
+	absolute 绝对定位
+   		元素框从文档流完全删除，并相对于其包含块定位。包含快可能是文档中的另
+		者是初始包含块，元素原先在正常文档流中所占的空间会关闭
+		元素可以防止到页面的任何位置
+
+	fixed 固定
+    		元素框的表现类似于absolute值，不过其包含块是视窗本身
+	z-index
+    		相互重叠的元素的叠放顺序
+
+
+	position
+		static：此时4个定位偏移属性不会被应用
+		fixed：绝对定位，但是参照对象是浏览器
+		absolute：定位祖先元素进行定位，如果没有定位的祖先元素,则一直回溯到body元素
+	relative：相对自己本身定位
+	left 
+	right  
+	top 
+	bottom 
+	z-index
+
+5、多栏布局
+
+属性
+column-width：<length> | auto
+column-count：<integer> | auto
+column-gap：<length> | normal
+column-rule：[ column-rule-width ] || [ column-rule-style ] || [ column-rule-color ]
+
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <style type="text/css">
+        #book{
+              width:500px;
+              height:500px;
+        }
+        #multiColumn{
+
+            //列的宽度
+            -webkit-column-width:150px;
+            //列数
+            -webkit-column-count:2;
+            //列与列间的宽度
+            -webkit-column-gap:1.5em;
+            //列与列之间的边框样式
+            -webkit-column-rule:1px solid #F00;
+        }
+
+    </style>
+</head>
+<body>
+  <div id="bk">
+      <div id="multiColumn">
+          <div>   2月16日，央行公开市场进行2500亿逆回购，包括800亿7天、800亿14天、900亿28天期逆回购，当日有1500亿逆回购到期，当日净投放1000元，
+                  这意味着连续14日的净回笼结束。值得注意的是，16日，节前央行开展的约6000亿元规模的临时流动性便利操作(TLF)到期。
+              　　15日，央行公开市场进行1200亿逆回购操作，净回笼1400亿元。与此同时，
+          </div>
+          <div>   央行对22家金融机构开展MLF操作共3935亿元，中标利率均与上期持平。虽然此番开展MLF在一定程度上缓和市场流动性，但市场担忧不减。
+              　　此前在2月3日，央行全面上调公开市场操作利率，这被视作温和收紧货币政策的信号。而在多位市场人士看来，当前货币政策“稳”字当头，偏紧的货币政策没有结束，虽然短期资金比较稳定，但各机构都在融入长期资金，债市“寒冬”还在继续。
+          </div>
+      </div>
+  </div>
+</body>
+
+
+
+6、背景
+     背景颜色 background-color
+     背景图片属性 background-image
+     背景重复属性 background-repeat
+     背景附着属性 background-attachment
+     背景位置属性 background-position
+     背景属性 background
+
+	边框
+   	border
+    		boder-style
+     		border-width
+     		border-color 
+7、字体
+
+	font-family
+	font-size
+	color
+	line-height 设置行高
+	font-style 字体风格
+	font-weight 字体粗细
+	text-decoration 文本的装饰
+	letter-spacing 字符间距
+	word-spacing 设置单词间距
+
+8、文本
+	text-overflow
+	text-indent
+	vertical-align
+	text-align
+	white-space
+	word-wrap
+	word-break
+
+
+9、块阴影和元素阴影
+
+1、box-shadow 为元素定义阴影
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <style type="text/css">
+      img{
+
+         //设置阴影
+         //参数意义(阴影水平偏移值（可正负），阴影垂直偏移值(可正负)，阴影模糊值,阴影颜色)
+          -webkit-box-shadow: 2px 2px 10px #06C;
+      }
+
+    </style>
+</head>
+<body>
+   <img src="img/社保.jpg"/>
+
+
+
+10、优先级
+	浏览器默认设置
+	外部样式表
+	内部样式表<位于<head>标签内部>
+	内联样式（在html元素内部）
+
+
+11、选择器的优先级
+
+	id>class 元素选择器
+
+
+12、圆角
+	border-radios
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <style type="text/css">
+      img{
+          display:block;
+          width:200px;
+          height:100px;
+          border:#999 solid 2px;
+          //顺时针设置从左上角开始
+          -webkit-border-radius:20px 20px 30px 30px;
+      }
+    </style>
+</head>
+<body>
+   <img src="img/社保.jpg"/>
+
+
+13、字体阴影和火焰文字
+
+      字体阴影
+      <style type="text/css">
+	     p{
+		    text-align:center;
+			font:bold 60px helvatica,arial,sans-serif;
+			color:#fff; /*前景色*/
+			text-shadow:black 0.1em 0.1em 0.2em; /*颜色(black)，偏移(0.1,0.1)，模糊(0.2)*/
+		 }
+	  </style>
+   </head>
+   <body>
+      <p>HTML5+CSS3</p>
+   </body>
+
+   火焰文字
+   <head>
+      <title>测试画面</title>
+	  <meta charset="utf8"/>
+      <style type="text/css">
+	     body{
+		     background:#000;
+		 }
+	     p{
+		    text-align:center;
+			font:bold 60px helvatica,arial,sans-serif;
+			color:red; /*前景色*/
+			text-shadow:0 0 4px white,
+			            0 -5px 4px #ff3,
+			            2px -10px 6px #fd3,
+			            -2px -15px 11px #f80,
+			            2px -25px 18px #f20;
+		 }
+	  </style>
+   </head>
+   <body>
+      <p>HTML5+CSS3</p>
+   </body>
+
+
+14、浮雕效果
+      <style type="text/css">
+	     body{
+		     background:#000;
+		 }
+	     p{
+		    	text-align:center;
+			padding:24px;
+			margin:0;
+			font-family:helvatica,arial,sans-serif;
+			font-size:80px;
+			font-weight:bold;
+			color:#D1D1D1; /*前景色*/
+			background:#CCC;
+			text-shadow:-1PX -1PX  white,1PX 1PX #333;
+                     /*如果是这种
+		     text-shadow:1PX 1PX #333,-1PX -1PX  white;就有凹陷效果*/
+		 }
+	  </style>
+   </head>
+   <body>
+      <p>HTML5+CSS3</p>
+   </body>
+
+
+15、描边效果
+      <style type="text/css">
+	     body{
+		     background:#000;
+		 }
+	     p{
+		    text-align:center;
+			padding:24px;
+			margin:0;
+			font-family:helvatica,arial,sans-serif;
+			font-size:80px;
+			font-weight:bold;
+			color:#D1D1D1; /*前景色*/
+			background:#CCC;
+			text-shadow:-1px 0  black,
+			            0 1px black;
+				    1px 0 black;
+				    0 -1px black;
+		 }
+	  </style>
+   </head>
+   <body>
+      <p>HTML5+CSS3</p>
+   </body>
+
+
+
+16、发光效果
+
+      <style type="text/css">
+	     body{
+		     background:#000;
+		 }
+	     p{
+		    text-align:center;
+			padding:24px;
+			margin:0;
+			font-family:helvatica,arial,sans-serif;
+			font-size:80px;
+			font-weight:bold;
+			color:#D1D1D1; /*前景色*/
+			background:#CCC;
+			text-shadow:0 0 0.2em #F87,
+			            0 0 0.2em #F87;
+		 }
+	  </style>
+   </head>
+   <body>
+      <p>HTML5+CSS3</p>
+   </body>
+
+17、属性选择器
+	[att^=value] 该属性以指定值开始
+	[att$=value] 改属性的值以指定的值结束，name^='tt'
+	[att*=value] 该属性的值包含指定的值，而无论其位置
+
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <style type="text/css">
+        div[class^="t"]{
+            color:#30F;
+            font-family:'微软雅黑';
+            font-size:30px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="title">
+    被选择的区域
+</div>
+</body>
+
+
+18、兄弟选择器
+
+     a~b 如果是a+b则选择 a后的第一个兄弟
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <style type="text/css">
+        //选择div后面的div兄弟元素
+        span~div{
+            color:#30F;
+            font-family:'微软雅黑';
+            font-size:30px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="title">
+    被选择的区域1
+</div>
+<span class="title">
+    被选择的区域span
+</span>
+
+<div class="title1">
+    被选择的区域2
+</div>
+<div class="title3">
+    被选择的区域3
+</div>
+</body>
+
+
+
+19、溢出文本
+
+19.1、text-overflow 
+  clip 不显示省略标记(...) 而是简单的裁切
+  ellipsis 当对象内文本溢出时显示省略标记
+
+
+  同时 强制文本在一行内显示，(white-sapce:nowrap) 
+  及溢出内容为隐藏 overflow:hidden
+
+	white-space:nowrap;
+	overflow:hidden;
+	-o-text-overflow:ellipsis;
+	text-overflow:ellipsis;
+
+
+19.2、文本换行
+
+	line-break
+	word-wrap：
+   	取值 normal 控制连续文本换行
+        break-word：内容将在边界内换行，
+
+	word-break  亚洲语言换行
+      	取值：word-break: keep-all 禁止断开
+
+
+	white-space 
+	nowrap：强制在一行内显示
+
+
+20、形变
+	-webkit-transform:rotate(5deg);
+
+
+21、背景
+
+使用：body{
+    background:#fff url('imag.jpg') no-repeat right top
+}
+对应顺序
+background-color
+background-image
+background-repeat
+
+background-attachment 背景图像是否固定或者随着页面滚动
+    如  background-attachment:fixed;
+        background-attachment:scroll; 默认滚动
+        background-attachment:inherit; 默认滚动
+
+background-position
+	left top
+	left center
+	left bottom
+	right top
+	right center
+	right bottom
+	center top
+	center center
+	center bottom
+------------
+%x%y
+------------
+xpos ypos
+------------
+inherit
+
+
+background
+	background-origin
+
+    	取值 
+    	padding： 从padding区域（含padding）开始显示背景图像
+     	border： 从border区域（含border）开始显示背景图像
+    	content ：从content区域开始显示背景图像
+
+	定义背景图像的裁剪
+     		background-clip
+    			border从边框区域裁切
+    			padding 补白区域裁切
+    			context 内容区域裁切
+    			no-clip
+
+使用 css
+div{
+    background:url() no-repeat; 
+   -moz-background-size:cover;
+   background-size:cover;
+  -moz-background-clip:content;
+  -webkit-background-clip:content;
+  background-clip:content;
+}
+
+
+定义背景图像的大小
+
+	background-size：auto 背景图像的真实大小
+    	cover 背景图像等比缩放到完全法海容器，背景图像可能超出容器
+ 	caontain  将背景图像等比缩放到与容器的宽度或高度相等，背景图像始终被包含在容器内。
+
+	背景循环
+
+	-moz-background-break
+  	bounding-box
+  	each-box  下一行不在接着上一行显示
+  	continue 下一行接着上一行进行显示
+
+	-moz-background-inline-policy:bounding-box;
+	整个内联元素进行平铺
+
+
+
+	opacity可设置任何元素的透明度
+	
+	取值
+     		0-1 之间的浮点数
+
+	背景色的设置
+     		最后的参数为透明度
+    		rgba(0,0,0,0.1)
+
+	transparent
+     	背景边框透明值全部为0   
+	div{
+    		background-color:transparent;
+    		border-color:transparent;
+    		color:transparent;  //前景色
+	}
+ie对其的支持不佳
+
+          
+颜色透明度
+
+1、rgba(红色分量，绿色分量，蓝色分量，不透明度)
+   与opacity的区别： rgba主要设置颜色的不透明度，opacity主要设置元素的不透明度
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <style type="text/css">
+        .title{
+             display:block;
+             width:300px;
+             height:200px;
+                
+             background-color:rgba(255,0,0,1);//设置背景颜色
+             color:rgba(0,255,0,0.6); //设置字体颜色
+        }
+
+    </style>
+</head>
+<body>
+<span class="title">
+    被选择的区域span
+</span>
+
+</body>
+
+
+   
+22、Transform
+
+22.1、实现旋转缩放移动等动画效果
+      变形函数
+      	matrix()矩阵
+      	translate(）移动
+     	scale() 缩放
+    	scaleX（） 缩放x轴
+    	scaleY() 缩放Y
+   	rotate()旋转
+    	skewX（）  倾斜X
+   	skewY（）倾斜Y
+   	skew()
+
+
+22.2、旋转及缩放
+<style type="text/css">
+      div{
+          position:absolute;
+          left:100px;
+          top:100px;
+          width:306px;
+          height:226px;
+          background:#0FF url(../imgs/社保.jpg) no-repeat;
+          -webkit-background-size:cover;
+          -o-background-size:cover;
+          background-size:cover;
+          /*定义动画过程 transition 定义动画状态 ease-in为渐入 background背景色*/
+          -webkit-transition:-webkit-transform .5s ease-in, background .5s ease-in;
+          -moz-transition:-webkit-transform .5s ease-in, background .5s ease-in;
+          -o-transition:-webkit-transform .5s ease-in, background .5s ease-in;
+          transition:transform .5s ease-in, background .5s ease-in;
+
+      }
+      div:hover{
+          /*旋转180度并放大*/
+          -webkit-transform:rotate(180deg) scale(2);
+          -moz-transform:rotate(180deg) scale(2);
+          -o-transform:rotate(180deg) scale(2);
+          -transform:rotate(180deg) scale(2);
+      }
+
+    </style>
+</head>
+<body>
+   <div>this is a div</div>
+</body>
+</html>
+
+鼠标浮动上去
+
+
+
+22.3、旋转rotate(xxdeg)
+div:hover{
+    /*旋转180度并放大*/
+    -webkit-transform:rotate(180deg) ;
+    -moz-transform:rotate(180deg);
+    -o-transform:rotate(180deg);
+    -transform:rotate(180deg);
+}
+
+22.4、缩放动画
+scale（） 正数 放大的倍数 如1.1
+          负数 翻转
+应用：如导航栏鼠标指向的时候放大一点
+a:hover{
+   color:#FFF;
+   font-weight:bold;
+   text-decoration:none;
+
+   background:url() #F00 no-repeat 5px 12px;
+   -webkit-transform:scale(2);
+   -moz-transform:scale(2);
+   -o-transform:scale(2);
+}
+
+22.5、移动动画  (负数表示反向偏移)
+   translate （x偏移，y偏移）
+  -moz-transform:translate(4,4);
+  -webkit-transform:translate(4,4);
+  -o-transform:translate(4px,4px);
+
+22.6、倾斜动画
+
+skew(相对x轴倾斜，相对y轴倾斜)
+  -moz-transform:skew(4,4);
+  -webkit-transform:skew(4,4);
+  -o-transform:skew(4px,4px);
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+      div{
+          position:absolute;
+          left:100px;
+          top:100px;
+          width:306px;
+          height:226px;
+          background:#0FF url(../imgs/login_main_bg.jpg) no-repeat;
+          -webkit-background-size:cover;
+          -o-background-size:cover;
+          background-size:cover;
+      }
+      div:hover{
+          /*旋转180度并放大*/
+          -webkit-transform:skew(30deg,30deg);
+          -moz-transform:skew(30deg,30deg) ;
+          -o-transform:skew(30deg,30deg) ;
+          -transform:skew(30deg,30deg);
+      }
+
+    </style>
+</head>
+<body>
+   <div>this is a div</div>
+</body>
+</html>
+
+
+22.7、变形 matrix
+
+matrix（n1，n2，n3，n4，n5，n6）
+矩阵：
+ | a b e|
+ | c d f|
+ | 0 0 1|
+
+2D的转换是由一个3*3的矩阵表示的，前两行代表转换的值，
+分别是 a b c d e f ，要注意是竖着排的，第一行代表的是X轴变化，第二行代表的是Y轴的变化，第三行代表的是Z轴的变化，2D不涉及到Z轴，这里使用 0 0 1
+
+
+缩放对应的是矩阵中的a和d，x轴的缩放比例对应a,y轴的缩放比例对应d
+平移对应的是矩阵中 e 和 f，平移的x 和 f分别对应  e 和 f
+
+    <style type="text/css">
+      div{
+          position:absolute;
+          left:100px;
+          top:100px;
+          width:306px;
+          height:226px;
+          background:#0FF url(../imgs/login_main_bg.jpg) no-repeat;
+          -webkit-background-size:cover;
+          -o-background-size:cover;
+          background-size:cover;
+      }
+      div:hover{
+          
+          -webkit-transform:matrix(0.1,0.1,0,1,1,1);
+          -moz-transform:matrix(0.1,0.1,0,1,1,1);
+          -o-transform:matrix(0.1,0.1,0,1,1,1);
+      }
+
+    </style>
+</head>
+<body>
+   <div>this is a div</div>
+</body>
+
+
+22.8、动画集合
+  -webkit-transform:translate(80,80) rotate(45deg) scale(1.5,1.5)
+
+22.9、自定义动画
+  transform-origin
+  选取原点位置
+  默认 为center center
+
+
+设置左上角为坐标原点
+-moz-transform-origin：0 0；
+-webkit-transform-origin：0 0；
+-o-transform-origin：0 0 ；
+
+右上角
+-webkit-transform-origin：top right；
+
+
+
+23、折叠面板
+
+1、box-shadow
+div的box-shadow
+
+0 0表示未偏移从而产生发光的效果
+box-shadow:rgba(0,0,0,0.1) 0px 0px 8px(模糊的半径);
+-moz-box-shadow:rgba(0,0,0,0.1) 0px 0px 8px;
+-webkit-box-shadow:rgba(0,0,0,0.1) 0px 0px 8px;
+
+
+   <head>
+      <title>测试画面</title>
+	  <meta charset="utf8"/>
+      <style type="text/css">
+         div{
+		        width:200px;
+                        height:200px;
+			-moz-box-shadow:2px 2px 10px #06C;
+			-webkit-box-shadow:2px 2px 10px #06C;
+			box-shadow:2px 2px 10px #06C;
+		 }
+	  </style>
+   </head>
+   <body>
+      <div>HTML5+CSS3</div>
+   </body>
+
+
+
+24、定义内阴影
+
+   偏移两个像素 大小10个像素
+      <style type="text/css">
+         div{
+		        width:200px;
+                        height:200px;
+			padding:16px;
+			-moz-box-shadow:inset 2px 2px 10px #06C;
+			-webkit-box-shadow:inset 2px 2px 10px #06C;
+			box-shadow:inset 2px 2px 10px #06C;
+		 }
+	  </style>
+
+
+
+
+25、阴影列表（实现渐变阴影效果）
+      <title>测试画面</title>
+	  <meta charset="utf8"/>
+      <style type="text/css">
+         div{
+		        width:200px;
+                        height:200px;
+			padding:16px;
+			-moz-box-shadow:0 0 10px red,2px 2px 10px 10px blue,4px 4px 12px 12px green;
+			-webkit-box-shadow:0 0 10px red,2px 2px 10px 10px blue,4px 4px 12px 12px green;
+			box-shadow:0 0 10px red,2px 2px 10px 10px blue,4px 4px 12px 12px green;
+	 }
+	</style>
+   </head>
+
+
+
+26、边框的渐变 ，形成立体效果
+
+      <title>测试画面</title>
+	  <meta charset="utf8"/>
+      <style type="text/css">
+         div{
+		         border:50px solid #dedede;
+			 height:100px;
+			 width:600px;
+  			-moz-border-bottom-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+  			-moz-border-top-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+  			-moz-border-left-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+  			-moz-border-right-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+  			border-bottom-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+  			border-bottom-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+			border-top-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+		        border-left-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+		        border-right-colors:#100 #200 #300 #400 #500 #600 #700 #800 #900 #a00;
+
+    
+		 }
+	  </style>
+   </head>
+   <body>
+      <div>HTML5+CSS3</div>
+   </body>
+
+27、引入新的字体
+
+在css中引入字体文件
+ @font-face{
+   font-family:myfont;   	//自定义字体的名称
+   src：url(' ');               //可以有多个url，之间以逗号分隔
+}
+
+在css中使用
+font-family:myfont             //引用字体
+

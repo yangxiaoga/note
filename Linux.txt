@@ -1,0 +1,437 @@
+  
+     Linux命令
+
+
+Linux目录
+
+rootfs:根文件系统 /  Linux ,Unix
+
+/root
+系统启动相关的文件，如内核，initrd，以及grub（boot loader）
+/dev 设备文件
+  设备文件：
+  块设备：随机访问，数据块
+  字符设备：线性访问，按字符为单位
+  设备号：主设备号major和次设备号minor
+
+/etc 配置文件
+/home 用户的家目录，每一个用户的家目录默认为/home/USERNAME
+/root 管理员的家目录
+/lib 库文件
+  静态库 .a
+  动态库 .dll .so
+  lib/modules:内核模块文件
+/lib64
+/media 挂载点目录，移动设备
+/mnt 挂载点目录，额外临时文件系统
+/opt 可选目录，第三方程序的安装目录
+/proc 伪文件系统，内核映射文件
+/sys 伪文件系统，跟硬件设备相关的属性映射文件
+/tmp 临时文件 /var/tmp
+/var 可变化的文件
+/bin 可执行文件，用户命令
+/sbin 管理命令
+
+
+一、Linux下安装软件
+
+1、bin文件，适合所有Linux发行版
+2、rpm，yum redhat系列
+3、源码压缩包，适合所有的Linux发行版
+
+二、安装软件的步骤
+
+1、检查是否已经安装
+  rpm -qa|grep jdk
+2、下载软件包
+3、安装依赖
+
+rpm包，已经编译之后的应用程序
+
+
+三、RPM命令
+
+1、安装
+rpm安装是不能自己指定的，它的安装路径是由打包者来指定的
+
+rpm -i /PATH/TO/PACKAGE_FILE
+-h 以#显示进度，每个#表示2%
+-v 显示详细过程
+-vv 更详细的过程
+
+rpm -ivh /PATH/TO/PACKAGE_FILE
+
+2、查看软件包的安装位置
+如：rpm -ql jdk
+
+
+3、配置环境变量
+
+vi ~/.bash_profile
+系统启动先加载 /etc/profile,不管谁登陆
+后加载.bash_profile
+
+配置
+export JAVA_HOME=/usr/java/jdk1.7.0_79
+export PATH=$PATH:$JAVA_HOME/bin
+:wq
+
+source c ~/.bash_profile
+
+查看环境变量
+printenv
+
+init 0 关机命令
+init 6 重启
+
+
+
+
+四、yum
+
+yum库中有一系列的rpm文件
+
+yum就像maven,如果是centos，默认使用的是centos的库
+yum的配置文件在
+/etc/yum.repos.d/
+
+替换成阿里的yum
+yum clean all 清除缓存
+yum makecache
+
+---------------------------
+使用本地的yum源
+
+五、读取光盘中的内容-挂载
+cd /mnt/
+mount /dev/cdrom   /mnt
+
+ 
+六、yum search 查找包
+
+ yum search jdk
+
+ yum info gcc ；gcc详细信息
+
+ yum install httpd
+
+ 启动
+ service httpd start
+ 
+  netstat -ntpl
+
+七、Centos和Redhat的版本基本上是一致的
+
+Centos是根据Redhat重新编译打包，得到一个新的Linux发行版
+在Linux中一切皆文件
+
+配置文件保存为纯文本格式
+
+与用户交互的命令行接口
+bash
+
+八、文件的权限
+
+-rwxr-xr-x 1 root root 37448 Nov 12 2010 sed
+lrwxrwxrwx
+cxxxxxxxxx 表示字符文件
+bxxxxxxxxx 字节文件
+
+
+c:字符设备文件，接收的输入和输出都是字符
+b:字节设备文件，接收的输入和输出都是字节
+
+
+-代表普通文件
+l表示链接文件
+
+权限
+
+文件的创建者所拥有的的权限
+文件的创建者所在的组群所拥有的权限
+其他用户权限
+
+每组权限包含三位
+r 读
+w 写
+x 执行
+
+
+root所在的组也叫root
+
+组的配置文件 /etc/group
+用户的配置文件 /etc/passwd
+
+
+九、源码
+
+编译前的准备
+
+1、安装c、c++环境
+   yum install gcc gcc-c++
+
+  预编译
+
+  ./configure --prefix=/usr/nginx-1.8
+
+2、编译
+  make
+
+3、make install
+
+
+十、用户的创建
+
+groupadd mysql
+useradd -r -g mysql mysql
+
+tar -zvxf mysql-VERSION.tar.gz
+cd mysql-VERSION
+cmake .
+make
+make install
+
+
+cd /usr/local/mysql
+chown -R mysql .
+chgrp -R mysql .
+scripts/mysql_install_db --user=mysql
+chown -R root.
+chown -R mysql data
+bin/mysqld_safe --user=mysql &
+cp support-files/mysql.server /etc/init.d/mysql.server
+
+
+十一 命令
+
+1、创建目录
+mkdir /mnt/test/m,n 创建m,n两个目录
+rmdir 目录名 删除目录
+
+文件的创建和删除
+touch
+假如文件存在，则不创建新的文件，文件的时间戳被修改
+
+查看文件的时间：stat 文件名
+改变权限 chmod u-w 11.txt
+
+删除文件：
+rm -i 删除前确认
+rm -f 删除之前不确认
+rm -r 递归删除
+
+cp -i 存在覆盖前确认
+
+2、Vi
+
+2.1移动光标
+
+h:左
+l:右
+j:下
+k:上
+
+w:移动至下一个单词的词首
+e:调至当前或者下一个单词的词尾 
+b:跳至当前或前一个单词的词首
+
+#w
+
+行内跳转
+0:绝对行首
+^:行首的第一个非空白字符
+$:绝对行尾
+
+行间跳转
+#G:跳转至第#行
+G：最后一行
+
+2.2 保存退出
+:wq ->:x
+
+
+2.3 删除光标所在处的单个字符x
+#x:删除光标所在处及后的共#个字符
+
+删除命令：d
+
+dd:删除光标所在行
+#dd：删除光标所在#行
+
+
+2.4 复制 y
+
+yy:复制当前一行
+y#w:复制单词，只复制光标后的#个单词
+
+2.5 粘贴 p
+
+2.6 撤销编辑u，可按多次
+
+2.7 查找 
+/
+敲字母n往下查
+
+
+2.8 查找替换
+:1,$s/after/before/g   将after替换成before
+
+2.9 出现行号
+:set number
+
+vi 配置行号的文件
+/etc/virc
+添加
+set nu
+
+十二、Linux Shell
+
+11.1 shell变量
+
+shell：若类型、解释型语言
+解释器：bash
+
+bash的变量类型
+
+环境变量
+本地变量（局部变量）：
+位置变量
+特殊变量
+
+
+11.2
+$?： 上一个命令的执行状态结果
+如:ls -l 1.txt
+查看命令的执行状态：echo $?  ;0表示执行成功
+
+$#： 传递到脚本的参数个数
+
+$*： 传递到脚本的参数，与位置变量不同，此选项参数可
+超过9个
+
+$$： 脚本运行时，当前进程的ID号，常用做
+   临时变量的后缀，如haison.$$
+$!： 后台运行的(&)最后一个进行的ID号
+$@与$#享用，使用时加引号，并在引号中返回参数个数
+$-： 上一个命令的最后一个参数
+$？：最后命令的退出状态，0表示没有错误，其他数值表明有错误
+
+
+
+
+11.3 输出重定向：
+
+> 覆盖重定向
+>>追加重定向
+2>错误覆盖重定向
+2>>错误追加重定向
+&>全部重定向
+
+
+查看shell中的环境变量
+printenv
+env
+export
+
+引用变量: ${变量名}，一般可以省略{}
+
+ANIMAL=pig
+echo "There are some ${ANIMAL}s."
+There are some pigs.
+
+echo:标准输出
+
+写shell脚本
+>>mkdir shell
+>>cd shell/
+>>vi test1.sh
+>>
+
+#!/bin/bash 从第一行写
+
+U="user1"
+useradd $U
+
+echo $U | passwd --stdin $U &> /dev/null   数据黑洞
+echo "user add sucessfully"
+
+
+11.4 条件判断
+
+[ expression ]
+
+整数比较
+
+-eq:如：[ $A -eq $B ]
+-ne, -gl,-lt,-ge,-le   不等于，大于，小于，大于等于，小于等于
+
+在linux中命令执行状态：0为真，其他非0则为假
+#！/bin/bash
+U="user1"
+id $U >& /dev/null && userdel -r $U || echo "user $U is not exists" 如果前者为真，则执行删除
+
+
+条件判断，控制结构
+if 条件;then
+    语句
+elif 条件;then
+    语句
+else
+    语句
+fi
+
+
+------------------------
+C='grep ^$1 /etc/passwd | wc -l'  传给脚本第一个参数,如果有至少一行
+
+if[ $C -eq 1  ];then
+  userdel -r $1
+  echo "User $1 deleted!"
+else
+  echo "User $1 is not exits!"
+fi
+-------------------------------------
+三个数比较大小
+
+
+#!/bin/bash
+if [ $# -ne 3 ] ;then
+   echo "args is error"
+   exit 1
+fi
+TMP_NUM = 
+[$1 -lt $2] && TMP_NUM=$1||TMP_NUM=$2
+[ TMP_NUM -gt $3 ] && TMP_NUM=$3
+echo "The min number is $TMP_NUM"
+
+
+
+检查脚本
+
+bash -n 脚本名称
+bash -x 脚本名称 debug
+
+
+Shell
+
+1、let C = $A +$B
+2、C = $[$A+$B]
+3、C=$(($A+$B))
+4、C='expr $A+$B'
+
+
+循环
+
+for 变量 in 列表 ; do
+  语句
+done
+
+如：
+  for  I in 12345 ; do
+     语句
+ done
+
+
+如何生成列表
+1、{1..100}
+2、seq[起始数] [跨度数] [结束数]

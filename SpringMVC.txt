@@ -1,0 +1,2882 @@
+﻿		
+			SpringMVC
+
+
+一、springMVC简介
+
+1、是什么
+
+	实现了Web MVC设计模式的请求驱动类型的轻量级Web框架，将Web层进行职责解耦，基于请求驱动指得就是使用 
+	请求-响应模型，目的简化开发
+
+ 	前端控制器：DispatcherServlet 
+  	应用控制器： (1)处理器映射器 Handler Mapping 进行从处理器管理
+               	     (2) 视图解析器 View Resolver 进行视图管理
+
+  	页面控制器/动作/处理器为Controller接口
+
+2、提供了什么
+      非常灵活的数据验证
+      格式化和数据绑定机制
+      强大的约定大于配置的契约式编程支持
+
+3、能帮我们做什么
+     设计干净的web层
+     进行间接的web层开发
+     天生与spring框架集成（如Ioc容器AOP等）
+     简单web层单元测试
+     灵活的url到页面控制器的映射
+     非常容易与其他视图集成
+     灵活数据验证 格式化 和数据绑定机制 
+     强大的jsp标签
+     灵活本地化
+     简单异常处理
+     对静态资源的支持
+     支持Restful
+
+4、Spring Web MVC架构与过程
+
+   处理流程    
+	前端控制器根据请求信息来确定选择哪一个页面控制器进行处理并把请求委托给他
+	页面控制器收到请求后进行功能处理，首先要收集和绑定参数到一个对象，这个对象在spring webmvc中叫命令对象，并进行验证，然后将命令对象委托给业务对象进行处理，处理完毕后返回一个ModelAndView
+	前端控制器收回控制权，将响应返回给用户，然后根据返回的逻辑视图名，选择相应的视图进行渲染，并把模型数据传入以便视图渲染
+	前端控制器再次收回控制权，将响应返回给用户
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5、Introduce
+Dependency Injection 依赖注入
+Inversion of Control    控制反转
+
+包的作用：
+	aop： 		面向切面编程
+        aspects： 	提供对AspectJ框架的整合
+        beans ： 	依赖注入的基础实现
+        context.support contex的拓展支持用于mvc方面
+        context：  	在IoC功能上的拓展服务，邮箱服务 任务调度，JNDI定位 EJB集成 远程访问 缓存及各种视图层框架的封装
+	core：		核心工具包
+	expression：	spring表达式语言
+	instrument：	Tomcat连接池的集成
+	jdbc：		对jdbc的简单封装
+	jmx：		为简化JMX API的使用做的简单封装
+	orm：		整合第三方ORM框架如ibatis jdo hibernate
+	oxm：		spring对Object/XML的映射支持
+	transaction：	为jdbc hebernate jdo jpa提供一致的声明式和编程式事务管理
+	web：		springweb下的工具包
+
+Core包包括
+ 	spring-core
+ 	spring-beans 
+	spring-context 
+	spring-context-support
+	spring-expression
+包含Ioc and依赖注入
+
+context 国际化
+资源加载
+org.springframework.beans 和org.springframework.context
+提供基础的控制反转容器
+ClassPathXmlApplicationContext
+
+元数据
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="..." class="...">
+    <!-- collaborators and configuration for this bean go here -->
+    </bean>
+</beans>
+
+
+二、DispatcherServlet简介
+
+
+DispatcherServlet是前端控制器设计模式的实现
+提供spring web mvc的集中访问点，而且负责职责的分派，
+而且与spring Ioc无缝集成，可以获得spring的所有好处
+
+
+他主要负责职责调度工作，本身主要用于控制流程，主要职责如下：
+1、文件上传解析，如果请求类型时multipart将通过MultipartResolver进行文件上传解析
+2、通过HandlerMapping将请求映射到处理器（返回一个HalderExcutionChain 他包括一个处理器多个HandlerInterrcrptor拦截器）
+3、通过HandlerAdapter支持多种类型的处理器（HandlerExcutionChain）中的处理器
+4、通过ViewResolver解析逻辑视图名到具体视图实现
+5、本地化解析
+6、渲染具体的视图
+7、如果遇到异常交给HandlerExceptionResolver
+
+DispatcherServlet配置自己的初始化参数
+
+  <servlet>
+     <servlet-name>springMvc</servlet-name>
+     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+     <load-on-startup>1</load-on-startup>
+     <!--上下文环境-->
+     <!--spring就不会再在WEB-INF下寻找配置文件-->
+     <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring-servlet.xml</param-value>
+     </init-param>
+  </servlet>
+  <servlet-mapping>
+     <servlet-name>springMvc</servlet-name>
+     <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+DispatcherServlet初始化顺序
+     继承关系
+    	HttpServlet
+         HttpServletBean 
+          FrameworkServlet（通过initServletBean（）进行web上下文初始化）
+           DispatcherServlet（实现了onRefresh()方法提供一些前端控制器相关的配置）
+
+
+三、Controller简介
+
+Controller控制器是mvc中部分C，因为此处的控制器主要负责功能处理部分
+1、收集、验证请求参数并绑定到命令对象
+2、将命令对象交给业务对象，由业务对象处理并返回模型数据
+3、返回ModelAndView（Model部分是业务对象返回的模型数据，视图部分为逻辑视图名），即MVC中的C由Dispatcher+Controller组成
+
+4、WebContentGenerator简介
+用于提供如浏览器缓存控制、是否必须有session开启、支持的请求方法类型（GET、POST等）等，该类主要有如下属性：
+ 
+Set<String>   supportedMethods：设置支持的请求方法类型，默认支持“GET”、“POST”、“HEAD”，如果我们想支持“PUT”，则可以加入该集合“PUT”。
+
+boolean requireSession = false：是否当前请求必须有session，如果此属性为true，但当前请求没有打开session将抛出HttpSessionRequiredException异常；
+ 
+boolean useExpiresHeader = true：是否使用HTTP1.0协议过期响应头：如果true则会在响应头添加：“Expires：”；需要配合cacheSeconds使用；
+ 
+boolean useCacheControlHeader = true：是否使用HTTP1.1协议的缓存控制响应头，如果true则会在响应头添加；需要配合cacheSeconds使用；
+ 
+boolean useCacheControlNoStore = true：是否使用HTTP 1.1协议的缓存控制响应头，如果true则会在响应头添加；需要配合cacheSeconds使用；
+ 
+private int cacheSeconds = -1：缓存过期时间，正数表示需要缓存，负数表示不做任何事情（也就是说保留上次的缓存设置）
+
+
+	1、cacheSeconds =0时，则将设置如下响应头数据：
+              Pragma：no-cache          // HTTP 1.0的不缓存响应头
+              Expires：1L             // useExpiresHeader=true时，HTTP 1.0
+              Cache-Control ：no-cache      // useCacheControlHeader=true时，HTTP 1.1
+              Cache-Control ：no-store      // useCacheControlNoStore=true时，
+                      该设置是防止Firefox缓存
+ 
+
+	2、cacheSeconds>0时，则将设置如下响应头数据：
+        Expires：System.currentTimeMillis() + cacheSeconds * 1000L   
+                //  useExpiresHeader=true时，HTTP 1.0
+        Cache-Control ：max-age=cacheSeconds                   
+               // useCacheControlHeader=true时，HTTP 1.1
+
+	3、cacheSeconds<0时，则什么都不设置，即保留上次的缓存设置。
+ 
+
+5、此处简单说一下以上响应头的作用，缓存控制已超出本书内容：
+	HTTP1.0缓存控制响应头
+  	Pragma：no-cache：表示防止客户端缓存，需要强制从服务器获取最新的数据；
+  	Expires：HTTP1.0响应头，本地副本缓存过期时间，如果客户端发现缓存文件没有过期则不发送请求，
+	HTTP的日期时间必须是格林威治时间（GMT）， 如“Expires:Wed, 14 Mar 2012 09:38:32 GMT”；
+ 
+
+	HTTP1.1缓存控制响应头
+  	Cache-Control ：no-cache      
+ 	强制客户端每次请求获取服务器的最新版本，不经过本地缓存的副本验证；
+  	Cache-Control ：no-store     
+  	强制客户端不保存请求的副本，该设置是防止Firefox缓存
+  	Cache-Control：max-age=[秒]    
+	客户端副本缓存的最长时间，类似于HTTP1.0的Expires，只是此处是基于请求的相对时间间隔来计算，而非绝对时间。
+ 
+ 
+还有相关缓存控制机制
+	如Last-Modified（最后修改时间验证，客户端的上一次请求时间 在服务器的最后修改时间 之后，
+	说明服务器数据没有发生变化返回304状态码）、ETag（没有变化时不重新下载数据，返回304）。
+ 
+该抽象类默认被AbstractController和WebContentInterceptor继承。
+
+
+6、AbstractController简介
+
+该抽象类实现了Controller，并继承了WebContentGenerator（具有该类的特性，具体请看4.3），该类有如下属性：
+ 
+boolean synchronizeOnSession = false：表示该控制器是否在执行时同步session，从而保证该会话的用户串行访问该控制器。
+ 
+public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+              //委托给WebContentGenerator进行缓存控制
+              checkAndPrepare(request, response, this instanceof LastModified);
+              //当前会话是否应串行化访问.
+              if (this.synchronizeOnSession) {
+                     HttpSession session = request.getSession(false);
+                     if (session != null) {
+                            Object mutex = WebUtils.getSessionMutex(session);
+                            synchronized (mutex) {
+                                   return handleRequestInternal(request, response);
+                            }
+                     }
+              }
+              return handleRequestInternal(request, response);
+}
+ 
+可以看出AbstractController实现了一些特殊功能，如继承了WebContentGenerator缓存控制功能，并提供了可选的会话的串行化访问功能。
+而且提供了handleRequestInternal方法，因此我们应该在具体的控制器类中实现handleRequestInternal方法，而不再是handleRequest。
+ 
+ 
+AbstractController使用方法：
+
+首先让我们使用AbstractController来重写第二章的HelloWorldController：
+ 
+public class HelloWorldController extends AbstractController {
+	@Override
+	protected ModelAndView handleRequestInternal(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+		//1、收集参数
+		//2、绑定参数到命令对象
+		//3、调用业务对象
+		//4、选择下一个页面
+		ModelAndView mv = new ModelAndView();
+		//添加模型数据 可以是任意的POJO对象
+		mv.addObject("message", "Hello World!");
+		//设置逻辑视图名，视图解析器会根据该名字解析到具体的视图页面
+		mv.setViewName("hello");
+		return mv;
+	}
+}
+
+
+7、配置浏览器缓存5秒
+	<bean name="/helloCache" class="someClass">
+    		<property name="cacheSeconds" value="5"></property>
+	</bean>
+
+8、配置只支持指定的请求 类型如POST GET
+
+	<bean name="/helloWithPOST" class="someClass">
+       		<property name="supportedMethods" value="POST"/>
+	</bean>
+应用在注册、登录只允许POST请求
+
+9、当期请求的session前置条件检查，如果当前请求无session将抛出HttpSessionRequiredException异常
+
+	<bean name="helloRequiredSession" class="someClass">
+     		<!-- Web Content Generator中的属性-->
+     		<peoperty name="requireSession" value="true"></property>
+	</bean>
+
+
+10、几个Controller简介
+
+10.1、ServletForwardController
+     将接收到的请求转发到一个命名的Servlet（这个Servlet必须继承HttpServlet ，可以使用Servlet API 对网页进行写操作）
+例如：
+    <bean name="/forwardToServlet" class="org.springframework.web.servlet.mvc.ServletForwardingController">
+        <property name="servletName" value="forwarding"></property>
+    </bean>
+    
+  <!-- 配置需要转到的Servlet -->
+  <servlet>
+      <servlet-name>forwarding</servlet-name>
+      <servlet-class>controller.MyServlet</servlet-class>
+  </servlet>
+
+MyServlet
+package controller;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+public class MyServlet extends HttpServlet{
+	private static final long serialVersionUID = 1L;
+	public void doGet(HttpServletRequest req,HttpServletResponse resp)throws ServletException,IOException{
+           在网页上写入内容
+    	   resp.getWriter().write("<a href='http://www.baidu.com'>this is myservlet</a>");
+    }
+}
+当请求/forwardToServlet的servlet进行处理
+
+10.2、BaseCommadController 命令控制器通用基类
+
+	提供了以下功能：
+
+       （1）数据绑定：请求参数到一个command object，这里的命令对象是指绑定请求参数的任何pojo对象
+     	commandClass：标识命令对象实现类，如UserModel
+     	commandName：表示放入请求的命令对象名字（默认command）,request.setAttrivbute(commandName,commandObject)
+
+       （2）验证功能：提供Validate注册注册验证其会验证命令对象属性数据是否合法
+     	validators：通过该属性注入验证器，验证器用来验证命令对象属性是否合法
+
+10.3、AbstractCommandController（应该已经被弃用）
+    命令控制器之一，可以实现该控制器来创建命令控制器，该控制器能把自动封装请求参数到一个命令对象，而且提供了验证功能
+    (1)创建命令类（普通的JavaBean类/POJO）
+
+10.4、AbstractFormController
+     
+    	用于支持带步骤的表单提交的命令控制器基类
+ 	功能：
+      	定义表单处理（表单的渲染），并从控制器获取命令对象构建表单
+     	提交表单处理，当用户提交表单内容后 AbstractFormController可以将用户请求的数据绑定到命令对象，
+	并可以验证表单内容，对命令对象进行处理
+
+
+10.5 生产者消费者请求限定
+
+10.5.1、Media Type
+       	互联网媒体类型，一般就是我们所说的MIME类型，用来确定请求的内容类型或响应的内容类型
+	媒体类型格式： type/subtype(;parameter)? type主类型,任意的字符串如text，如果是*代表所有
+	subtype 子类型，任意的字符串，如html，如果是* 代表所有
+	parameter 可选，一些参数，如Accept请求头的q参数，Content-Type的charset参数
+
+	常见媒体类型：
+    	text/html： HTML格式
+    	text/plain: 纯文本格式
+   	text/xml : XML格式
+    	image/gif :gif图片格式
+    	image/jpg: fpg格式
+    	image/png：...
+    
+
+  	<form>中encType ，form表单数据被编码为key/value格式发送到服务器（表单默认提交数据的格式）
+	multipart/form-data 	当需要在表单中进行文件上传时，需要使用该格式
+	application/xhtml+xml		XHTML格式               
+	application/xml     	XML数据格式 
+	application/atom+xml  		Atom XML聚合格式    
+	application/json    		JSON数据格式
+	application/pdf    		pdf格式                        
+	application/msword  		Word文档格式
+	application/octet-stream 	二进制流数据（如常见的文件下载）
+
+10.5.2、Content-Type 内容类型，即请求/响应的内容区数据的媒体类型
+
+      请求头的内容类型，发送到服务器的内容数据的媒体类型
+      request中设置请求头“Content-Type：application/x-www-form-urlencoded”
+	表示请求的数据为key/value数据
+	响应头
+	response.setContentType("text/html;charset=utf-8")
+	Content-Type:媒体类型;编码（可选）
+
+	说明：
+   	1、客户端-发送请求-服务器：客户端通过请求头Content-Type指定内容体的媒体类型（即客户端此时是生产者），
+	   服务器根据Content-Type消费内容体数据
+
+	2、服务器-发送请求-客户端;服务器生产响应头Content-Type指定的响应体数据（即服务器此时是生产者），
+           客户端根据Content-Type消费内容体数据（即客户端此时是消费者）
+
+
+10.5.3、Accept 指定什么媒体类型的响应式可接受的，即告诉服务器我需要什么类型的媒体数据，
+	此时服务器应根据Accept请求头生产指定媒体类型的数据
+
+ 	1、json数据
+      	服务器端控制器
+    	@RequestMapping(value="/response/ContetType" headers="Accept=application/json")
+	public void response（HttpResponse response）{
+      		response.setContentType("application/json;charset=utf-8");
+     		String jsonData="{\"username\":\"zhang\", \"password\":\"123\"}";
+		response.getWriter().write(jsonData)
+	}
+
+ 	request.getHeaders().set("Accept", "application/json")：表示客户端只接受（即只消费）json格式的响应数据；
+
+
+@RequestMapping(value = "/response/ContentType", headers = "Accept=application/xml")  
+public void response3(HttpServletResponse response) throws IOException {  
+   	//①表示响应的内容区数据的媒体类型为xml格式，且编码为utf-8(客户端应该以utf-8解码)  
+    response.setContentType("application/xml;charset=utf-8");  
+   	//②写出响应体内容  
+   	String xmlData = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";  
+    xmlData += "<user><username>zhang</username><password>123</password></user>";  
+  	response.getWriter().write(xmlData);  
+} 
+
+ request.getHeaders().set("Accept", "application/xml")：表示客户端只接受（即只消费）xml格式的响应数据；
+
+
+
+四、Spring AOP
+
+1、什么是动态代理
+
+	首先创建委托类对象，将其以构造函数传入代理处理器，代理处理器ProxyHandler中会以java反射方式调用该委托类对应的方法，
+然后使用java反射机制中的Proxy.newProxyInstance方式创建一个代理类实例，创建该实例需要制定该实例的类加载器，需要实现的接口（即目标接口）
+以及处理代理实例接口调用的处理器。最后，调用代理类目标接口方法时，会自动转发到代理处理器中invoke方法内，invoke方法内部实现预处理，
+对委托类方法调用，时候处理等逻辑
+
+限制：代理类和委托类都需要实现同一个接口，对于没有实现接口的类，目前无法使用fail机制
+
+什么是反射？ 
+ 通过字节码文件对象，将类的方法，构造器等映射成相应的类，并进行各自的操作，类加载器是通过某个类的.classLoader()方法，
+ 将该类的.class文件从硬盘中加载到java虚拟机中，形成字节码文件
+
+ 动态代理是为了实现目标类的功能，并添加 特有的系统功能，传入类加载器。目标类的接口，以及InvocationHandler接口的实现子类
+(InvacationHandler 接口的invoke方法，要传入代理对象，方法名，方法的参数，在invoke方法中，可以添加特有的系统功能)，
+然后就可以根据运行时，目标类的不同，以及要实现系统功能的不同，动态生成代理类，来完成相应的功能类的创建
+
+    代理设计模式
+	定义：为其他对象提供一种代理以控制对这个对象的访问
+
+    动态代理的使用
+    java动态代理机制以巧妙的方式实现了代理模式的设计理念
+    public interface Subject{
+             pubic void doSomething();
+    }
+
+    public class RealSubject implements Subject{
+            public void doSomething(){
+                   //implements code
+           }
+    }
+
+    public class ProxyHandler  implements InvocationHandler{
+               private Object proxied;
+               public ProxyHandler(Object proxied){
+                         this.proxied=proxied;
+              }
+              public Object invoke(Object proxy,Method method,Object[]    args)throws Throwable{
+                         //在转调具体目标对象之前，可以执行一些功能处理
+                         //转调具体目标对象的方法
+                        return method.invoke(proxied,args) ;
+
+             }
+  }
+
+import java.lang.reflect.Proxy;
+
+public class DynamicProxy {
+	
+	public static void main(String[] args){
+		RealSubject real = new RealSubject();
+		Subject proxySubject =  (Subject)Proxy.newProxyInstance(Subject.class.getClassLoader(), new Class[]{Subject.class}, new ProxyHandler(real));
+		proxySubject.doSomething();
+	}
+
+}
+
+
+动态地理内部实现
+
+1、Proxy的代码实现 
+ proxy静态方法 newProxyInstance
+ public static Object newProxyInstance(ClassLoader loader, Class<?>[]interfaces,  InvocationHandler h) throws IllegalArgumentException { 
+    // 检查 h 不为空，否则抛异常
+    if (h == null) { 
+        throw new NullPointerException(); 
+    } 
+
+    // 获得与指定类装载器和一组接口相关的代理类类型对象
+    Class cl = getProxyClass(loader, interfaces); 
+
+    // 通过反射获取构造函数对象并生成代理类实例
+    try { 
+        Constructor cons = cl.getConstructor(constructorParams); 
+        return (Object) cons.newInstance(new Object[] { h }); 
+    } catch (NoSuchMethodException e) { throw new InternalError(e.toString()); 
+    } catch (IllegalAccessException e) { throw new InternalError(e.toString()); 
+    } catch (InstantiationException e) { throw new InternalError(e.toString()); 
+    } catch (InvocationTargetException e) { throw new InternalError(e.toString()); 
+    } 
+}
+2、Proxy的getProxyClass方法调用ProxyGenerator的generateProxyClass方法产生ProxySubject.class的二进制数据
+public static byte[] generateProxyClass（final String name,Class[] interfaces）
+
+ 
+另一个例子
+package com.zhangguo.Spring041.aop03;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Random;
+// * 动态代理类
+public class DynamicProxy implements InvocationHandler {
+
+    //被代理的对象
+    Object targetObject;
+     * 获得被代理后的对象
+     * @param object 被代理的对象
+     * @return 代理后的对象
+    public Object getProxyObject(Object object){
+        this.targetObject=object;
+        return Proxy.newProxyInstance(
+                targetObject.getClass().getClassLoader(), //类加载器
+                targetObject.getClass().getInterfaces(),  //获得被代理对象的所有接口
+                this);  
+        //InvocationHandler对象
+        //loader:一个ClassLoader对象，定义了由哪个ClassLoader对象来生成代理对象进行加载
+        //interfaces:一个Interface对象的数组，表示的是我将要给我需要代理的对象提供一组什么接口，如果我提供了一组接口给它，那么这个代理对象就宣称实现了该接口(多态)，这样我就能调用这组接口中的方法了
+        //h:一个InvocationHandler对象，表示的是当我这个动态代理对象在调用方法的时候，会关联到哪一个InvocationHandler对象上，间接通过invoke来执行
+    }
+
+     * 当用户调用对象中的每个方法时都通过下面的方法执行，方法必须在接口
+     * proxy 被代理后的对象
+     * method 将要被执行的方法信息（反射）
+     * args 执行方法时需要的参数
+     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //被织入的内容，开始时间
+        long start=System.currentTimeMillis();
+        lazy();
+        
+        //使用反射在目标对象上调用方法并传入参数
+        Object result=method.invoke(targetObject, args);
+        
+        //被织入的内容，结束时间
+        Long span= System.currentTimeMillis()-start;
+        System.out.println("共用时："+span);
+        
+        return result;
+    }
+    
+    //模拟延时
+    public void lazy()
+    {
+        try {
+            int n=(int)new Random().nextInt(500);
+            Thread.sleep(n);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+  
+3、spring实现AOP的多种方式
+
+通过Advice定义横切逻辑，spring支持5种类型的Advice
+
+通知类型        连接点                                 实现接口
+
+前置通知	方法前			org.springframework.aop.MethodBeforeAdvice
+后置通知	方法后			org.framework.aop.AfterReturningAdvice
+环绕通知	方法前后		org.aopalliance.interceptor.MethodInterceptor
+异常抛出通知	方法抛出异常		org.springframework.aop.ThrowsAdivice
+引介通知	类中增加新的方法属性	org.springframework.aop.IntroductionInterceptor
+
+
+使用注解配置
+
+如下 （需要被代理的类）(如想在加减乘除方法中加逻辑，如监控方法的执行时间)
+@Service("math")
+public class Math{
+      public void add();
+      public void sub();
+       ......
+}
+通知类
+@Component
+@Aspect
+public class Advices{
+
+    	@Before（"execution(*com.aop2.Math.*(..))"）
+	public void before(JoinPoint jp){
+    		System.out.println("前置通知");
+    		System.out.println(jp.getSignature().getName());
+	}
+
+    	@After("execution(* com.zhangguo.aop02.Math.*(..))")
+    	public void after(JoinPoint jp){
+        	System.out.println("----------最终通知----------");
+    	}
+}
+
+<!--通知-->
+<bean id="advices" class="com.Advices"></bean>
+
+<!--aop配置 -->
+<aop:config proxy-target-class="true">
+
+      //这里表示被代理的目标对象是一个类，而非实现了接口的实现类
+        <aop:aspect ref="advices">
+        <!-- 切点-->
+        <aop:pointcut   expression="execution(*com.aop2.Math.*(..))" id="pointcut1"/>
+          <aop:before method="before" pointcut-ref="pointcut1"/>
+          <aop:before method="after" pointcut-ref="pointcut1"/> 
+	</aop:config>
+        <context:component-scan base-package="com.aop02"/>
+        <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+	声明一个方面
+        <aop:pointcut />
+          <aop:before method="before" pointcut-ref="pointcut1"/>
+          <aop:before method="after" pointcut-ref="pointcut1"/> 
+         </aop:config>
+
+
+五、Core核心
+
+配置元数据（Configuration metadata）
+如前面的图显示，Spring IoC容器消费一系列的配置元数据；这种配置元数据代表你作为一个应用开发者告诉Spring容器
+实例化、配置和组装的对象在你的应用程序。配置元数据是一般是应用XML格式。
+
+2、元数据配置实例
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+       <bean id="..." class="...">
+		<!-- collaborators and configuration for this bean go here -->
+       </bean>
+       <!-- more bean definitions go here -->
+</beans>
+
+3、实例化一个容器
+	ApplicationContext context = new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});
+
+4、bean的配置
+     跨多个xml配置bean
+    <beans>
+            <import resource="service.xml"/>
+            <import resource="thme.xml"/>
+            <bean id="bean1" class="...."/>
+    </beans>
+所有的位置路径相对于定义文件做入口，services.xml必须在同一个目录中的文件或位置
+
+5、获得bean
+ApplicationContext context = new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});
+PetStoreService service = context.getBean("petStore", PetStoreService.class);
+List<String> userList = service.getUsernameList();
+
+6、bean的定义
+    
+Property	Explain in...
+class	
+name	
+scope	
+constructor arguments	
+properties	
+autowiring mode	
+lazy-initialization mode	
+initialization method	
+destruction method	
+
+7、bean的别名
+<alias name="fromName" alias = "toName"/>
+
+如下：
+	<alias name="subsystemA-dataSource" alias="subsystemB-dataSource"/>
+	<alias name="subsystemA-dataSource" alias="myApp-dataSource" />
+
+8、内部类()
+    <bean class="com.example.Parent.$InnerClass"></bean>
+
+9、依赖注入（构造函数式）
+     
+    package x.y;
+    public class Foo {
+                 public Foo(Bar bar, Baz baz) {
+                 }
+     }
+
+  <beans>
+        <bean id="foo" class="x.y.Foo">
+              <constructor-arg ref="bar"/>
+              <constructor-arg ref="baz"/>
+        </bean>
+        <bean id="bar" class="x.y.Bar"/>
+        <bean id="baz" class="x.y.Baz"/>
+ </beans>
+
+package examples;
+public class ExampleBean {
+       private int years;
+       private String ultimateAnswer;
+       public ExampleBean(int years, String ultimateAnswer) {
+             this.years = years;
+             this.ultimateAnswer = ultimateAnswer;
+       }
+}
+使用指定类型的方式
+<bean id="exampleBean" class="examples.ExampleBean">
+         <constructor-arg type="int" value="7500000"/>
+         <constructor-arg type="java.lang.String" value="42"/>
+</bean>
+
+使用参数位置
+<bean id="exampleBean" class="examples.ExampleBean">
+       <constructor-arg index="0" value="7500000"/>
+       <constructor-arg index="1" value="42"/>
+</bean>
+
+使用名称
+
+<bean id="exampleBean" class="examples.ExampleBean">
+      <constructor-arg name="years" value="7500000"/>
+      <constructor-arg name="ultimateAnswer" value="42"/>
+</bean>
+
+10、依赖注入（getter setter式）
+
+public class SimpleMovieLister {
+        private MovieFinder movieFinder;
+        public void setMovieFinder(MovieFinder movieFinder) {
+                    this.movieFinder = movieFinder;
+         }
+  }
+在相关类中加入getter和setter方法
+
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+<bean id="exampleBean" class="examples.ExampleBean">
+           <property name="beanOne">
+                  <ref bean="anotherExampleBean"/>
+           </property>
+           <property name="beanTwo" ref="yetAnotherBean"/>
+           <property name="integerProperty" value="1"/>
+</bean>
+
+
+11、集合的配置
+     
+
+<bean id="moreComplexObject" class="example.ComplexObject">
+	<!-- results in a setAdminEmails(java.util.Properties) call -->
+	<property name="adminEmails">
+                <props>
+                        <prop key="administrator">administrator@example.org</prop>
+                        <prop key="support">support@example.org</prop>
+                        <prop key="development">development@example.org</prop>
+		</props>
+	</property>
+	<!-- results in a setSomeList(java.util.List) call -->
+	<property name="someList">
+         <list>
+             <value>a list element followed by a reference</value>
+             <ref bean="myDataSource" />
+         </list>
+	</property>
+	<!-- results in a setSomeMap(java.util.Map) call -->
+	<property name="someMap">
+          <map>
+                <entry key="an entry" value="just some string"/>
+                <entry key ="a ref" value-ref="myDataSource"/>
+          </map>
+	</property>
+	<!-- results in a setSomeSet(java.util.Set) call -->
+	<property name="someSet">
+           <set>
+               <value>just some string</value>
+               <ref bean="myDataSource" />
+            </set>
+	</property>
+</bean>
+
+12、集合的合并
+<beans>
+	<bean id="parent" abstract="true" class="example.ComplexObject">
+		<property name="adminEmails">
+			<props>
+    				<prop key="administrator">administrator@example.com</prop>
+    				<prop key="support">support@example.com</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="child" parent="parent">
+		<property name="adminEmails">
+			<!-- the merge is specified on the child collection definition -->
+			<props merge="true">
+    				<prop key="sales">sales@example.com</prop>
+    				<prop key="support">support@example.co.uk</prop>
+			</props>
+		</property>
+	</bean>
+<beans>
+
+13、scopes 
+
+   懒惰加载bean
+  <bean   lazy-init="true">    
+bean scopes
+	singleton        单例
+	prototype        可定义任意数量的实例
+	request          每一个HTTP请求都有实例创建
+	session          一个HTTP会话
+
+在java文件中进行配置
+@Scope("prototype")
+@Repository
+public class MovieFinderImpl implements MovieFinder {
+// ...
+}
+
+
+（1）单例，从缓存中取得
+	<bean id="accountService" class="com.foo.DefaultAccountService" scope="singleton"/>
+（2）原型 prototype
+	<bean id="accountService" class="com.foo.DefaultAccountService" scope="prototype"/>
+（3）request请求
+	<bean id="loginAction" class="com.foo.LoginAction" scope="request"/>
+
+14、PropertyPlaceholderConfigurer类配置数据库连接配置文件
+
+<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	<property name="locations" value="classpath:com/foo/jdbc.properties"/>
+</bean>
+
+<bean id="dataSource" destroy-method="close"
+class="org.apache.commons.dbcp.BasicDataSource">
+      <property name="driverClassName" value="${jdbc.driverClassName}"/>
+      <property name="url" value="${jdbc.url}"/>
+      <property name="username" value="${jdbc.username}"/>
+      <property name="password" value="${jdbc.password}"/>
+</bean>
+
+15、隐式注册bean
+	<context:annotation-config/>
+
+16、@Autowired自动注入
+public class MovieRecommender {
+	@Autowired
+	@Qualifier("main")   //起别名
+	private MovieCatalog movieCatalog;
+		// ...
+}
+
+配置文件
+<context:annotation-config/>
+<bean class="example.SimpleMovieCatalog">
+         <qualifier value="main"/>
+</bean>
+<bean id="movieRecommender" class="example.MovieRecommender"/>
+
+注解
+1.component-scan标签默认情况下自动扫描指定路径下的包（含所有子包），将带有@Component、@Repository、@Service、@Controller
+  标签的类自动注册到spring容器。
+  对标记了 Spring's @Required、@Autowired、JSR250's @PostConstruct、@PreDestroy、@Resource、JAX-WS's @WebServiceRef、EJB3's @EJB、JPA's @PersistenceContext、@PersistenceUnit
+  等注解的类进行对应的操作使注解生效（包含了annotation-config标签的作用）
+
+2、把DAO实现类注入到action的service接口(注意不要是service的实现类)中，注入时不要new 这个注入的类，因为spring会自动注入，如果手动再new的话会出现错误，
+   然后属性加上@Autowired后不需要getter()和setter()方法，Spring也会自动注入
+
+	@Autowired  
+	@Qualifier("chinese")  
+	private Man man;  
+
+	@Autowired，它是org.springframework.beans.factory.annotation.Autowired 是这个包中，它是spring的包。
+	而且它没有@Autowired("xxx"),那我要为这个bean定义名称怎么办这个时候可以用@Qualifier("xxx") 这个也是spring中的
+
+
+第二种：在注入bean的时候指定名称：
+
+先看@Resource，我们这么定义下：
+	@Resource(name="iocDao")
+	private IIocDao xx;
+注意：
+@Repository
+public class IocDao implements IIocDao{
+    public void add(){
+        System.out.println("调用了dao");
+    }
+}
+这里还是用会默认的，也就是这个实现对应的是 iocDao这bean。如果你要为这个类指定别名bean，
+@Repository("myIocDao"),
+那@Resource(name="myIocDao") 就要这么写了。就是这里的name要跟实现类对应的bean名称保持一致。private IIocDao xx; 这个属性名就随便写了。
+
+
+如果用Autowired就要这么写了
+@Autowired
+@Qualifier("iocDao")
+private IIocDao xx;
+因为Autowired 不能像Resource 那样带个参数指定一个name，就要用Qualifier来指定了。
+
+而且还可以这么用sqlSessionFactory
+	@Resource
+	@Qualifier("iocDao")
+	private IIocDao xx;
+等同于
+	@Resource(name="iocDao")
+	private IIocDao xx;
+
+@Resource的作用相当于@Autowired，只不过@Autowired按byType自动注入，
+如果发现找到多个bean，则，又按照byName方式比对，如果还有多个，则报
+出异常 而@Resource默认按 byName自动注入罢了。其实spring注解，最常用的还是根据名称，
+根据类型啊，构造方法啊，用的非常少。所以在多个实现的时候我们定义好bean的名称就行，就不会错乱
+
+<context:annotation-config /> 
+<context:component-scan base-package=”com.eric.spring”>
+当使用 <context:component-scan/> 后，就可以将 <context:annotation-config/> 移除了，前者包含了后者。
+
+
+测试容器中是否有bean
+
+package test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+public class TestAutoIsSuccess {
+    public static void main(String[] args){   
+    	ApplicationContext context = new FileSystemXmlApplicationContext("classpath:mvc-servlet.xml");
+    	Object obj = context.getBean("myBasicController");
+    	Object service = context.getBean("iUserService");
+    	Object dao = context.getBean("userDao");
+    	System.out.println(obj+" "+service+"  "+dao);
+    }
+}
+package serviceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import dao.UserDao;
+import service.IUserService;
+@Service("iUserService")
+public class ServiceImpl implements IUserService{
+	@Autowired
+	@Qualifier("userDao")
+    	private UserDao userDao;
+	@Override
+	public void setUser() {
+		userDao.dd();
+	}
+   
+}
+
+package dao;
+import org.springframework.stereotype.Repository;
+
+@Repository("userDao")
+public class UserDao {
+    public void dd(){
+    	System.out.println("dd");
+    }
+}
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:context="http://www.springframework.org/schema/context"
+ xmlns:tx="http://www.springframework.org/schema/tx"
+ xmlns:p="http://www.springframework.org/schema/p"
+ xmlns:mvc="http://www.springframework.org/schema/mvc"
+ xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-4.1.xsd
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd"
+    default-autowire="byName" default-lazy-init="true">
+    
+    <context:component-scan base-package="controller"/>  
+    <context:component-scan base-package="dao"/>
+    <context:component-scan base-package="serviceImpl"/>
+</beans>
+
+
+特别需要注意
+
+引用一个bean（使用的ref是另一个bean的id而不是name）
+<bean id="someId" class="someClass" >
+      <property  name="someOtherBean" ref="OtherId"/>
+</bean>
+<bean id="OtherId" class="someClassOther" />
+
+
+16、扫描包
+<context:component-scan base-package="org.example"/>
+
+<beans>
+          <context:component-scan base-package="org.example">
+                 <context:include-filter type="regex"    //type=regex 标识使用正则表达式
+                   expression=".*Stub.*Repository"/>
+                   <context:exclude-filter type="annotation"
+                   expression="org.springframework.stereotype.Repository"/>
+           </context:component-scan>
+</beans>
+
+17、@Service（）
+    @ Repository（）
+
+18、spring验证 
+
+    org.springframework.validation.Validator接口
+     validate(Object, org.springframework.validation.Errors)
+实体类
+public class Person {
+       private String name;
+       private int age;
+       // the usual getters and setters...
+}
+
+实现Validator接口
+package controller;
+import model.User;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
+public class ValidateController implements Validator{
+	@Override
+	public boolean supports(Class<?> classParam) {
+		return User.class.equals(classParam);
+	}
+	@Override
+	public void validate(Object obj, Errors errors) {
+            ValidationUtils.rejectIfEmpty(errors, "name", "name.empty");
+            User user =(User)obj;
+            if(user.getPassword().length()>10){
+            	errors.rejectValue("password", "negativevalue");
+            }	
+	}
+}
+supports方法判断当前的Validator接口实现类是否支持当前需要校验的实体类，
+只有当supports方法返回结果为true时该Validator接口实现类的validate方法才会调用用来对当前需要校验的实体类进行校验
+ValidationUtils类是Spring中提供的一个工具类。Errors就是Spring用来存放错误信息的对象。
+
+
+举例
+import org.springframework.validation.Errors;  
+import org.springframework.validation.ValidationUtils;  
+import org.springframework.validation.Validator;  
+   
+public class UserValidator implements Validator {  
+   
+   public boolean supports(Class<?> clazz) {  
+       // TODO Auto-generated method stub  
+       return User.class.equals(clazz);  
+    }  
+   
+    public void validate(Object obj, Errors errors) {  
+       
+       ValidationUtils.rejectIfEmpty(errors, "username", null, "Username is empty.");  
+       User user = (User) obj;  
+       if (null == user.getPassword() || "".equals(user.getPassword()))  
+           errors.rejectValue("password", null, "Password is empty.");  
+   }   
+} 
+定义了一个对User类进行校验的UserValidator，但是这个时候UserValidator还不能对User对象进行校验，
+因为我们还没有告诉spring应该使用UserValidator来校验User对象在spring中可以使用DataBiner设定当前Controller需要使用Validator
+
+
+import javax.validation.Valid;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+ 
+@Controller
+public class UserController {
+   
+    @InitBinder
+    public void initBinder(DataBinder binder) {
+       binder.setValidator(new UserValidator());
+    }
+ 
+    @RequestMapping("login")
+    public String login(@Valid User user, BindingResult result) {
+       if (result.hasErrors())
+           return "redirect:user/login";
+       return "redirect:/";
+    }
+}
+
+这样的validator只是在这个controller中起作用
+如果想配置成全局的validator，只需要在xml中进行配置
+<mvc:annotaion-driven validator="userValidator"/>
+<bean id="userValidator" class="com.userValidator/>
+
+19、JSR-303 Validation进行验证"/>
+
+get方法上加注解
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.NotBlank;
+ 
+public class User {
+    private String username;
+    private String password;
+    private int age;
+ 
+    @NotBlank(message="用户名不能为空")
+    public String getUsername() {
+       return username;
+    }
+ 
+    public void setUsername(String username) {
+       this.username = username;
+    }
+ 
+    @NotNull(message="密码不能dingi null")
+    public String getPassword() {
+       return password;
+    }
+ 
+    public void setPassword(String password) {
+       this.password = password;
+    }
+ 
+    @Min(value=10, message="年龄的最小值为10")
+    public int getAge() {
+       return age;
+    }
+ 
+    public void setAge(int age) {
+       this.age = age;
+    }
+   
+}
+
+配置文件
+<mvc:annotation-driven>
+
+Controller
+
+import javax.validation.Valid;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+ 
+@Controller
+public class UserController {
+    @RequestMapping("login")
+    public String login(@Valid User user, BindingResult result) {
+       if (result.hasErrors())
+           return "user/login";
+       return "redirect:/";
+    }
+   
+}
+
+JSR-303原生支持的限制有如下几种：
+限制	说明
+@Null	限制只能为null
+@NotNull	限制必须不为null
+@AssertFalse	限制必须为false
+@AssertTrue	限制必须为true
+@DecimalMax(value)	限制必须为一个不大于指定值的数字
+@DecimalMin(value)	限制必须为一个不小于指定值的数字
+@Digits(integer,fraction)	限制必须为一个小数，且整数部分的位数不能超过integer，小数部分的位数不能超过fraction
+@Future	限制必须是一个将来的日期
+@Max(value)	限制必须为一个不大于指定值的数字
+@Min(value)	限制必须为一个不小于指定值的数字
+@Past	限制必须是一个过去的日期
+@Pattern(value)	限制必须符合指定的正则表达式
+@Size(max,min)	限制字符长度必须在min到max之间
+
+定义自己的限制类型
+
+  除了JSR-303原生支持的限制类型之外我们还可以定义自己的限制类型。
+定义自己的限制类型首先我们得定义一个该种限制类型的注解，而且该注解需要使用@Constraint标注。
+现在假设我们需要定义一个表示金额的限制类型，那么我们可以这样定义
+
+ 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import com.xxx.xxx.constraint.impl.MoneyValidator;
+ 
+@Target({ElementType.FIELD, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy=MoneyValidator.class)
+//@Constraint注解标注表明我们定义了一个用于限制的注解
+//@Constraint注解的validatedBy属性用于指定我们定义的当前限制类型需要被哪个ConstraintValidator进行校验
+public @interface Money {
+   
+    String message() default"不是金额形式";
+   
+    Class<?>[] groups() default {};
+   
+    Class<? extends Payload>[] payload() default {};
+ 
+}
+限制类型校验类必须实现接口javax.validation.ConstraintValidator，并实现它的initialize和isValid方法。
+我们先来看一下MoneyValidator的代码示例：
+
+ 
+import java.util.regex.Pattern;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import com.xxx.xxx.constraint.Money;
+public class MoneyValidator implements ConstraintValidator<Money, Double> {
+ 
+    private String moneyReg = "^\\d+(\\.\\d{1,2})?$";//表示金额的正则表达式
+    private Pattern moneyPattern = Pattern.compile(moneyReg);
+    public void initialize(Money money) {
+      
+    }
+ 
+    public boolean isValid(Double value, ConstraintValidatorContext arg1) {
+       if (value == null)
+           return true;
+       return moneyPattern.matcher(value.toString()).matches();
+    } 
+}
+
+
+具体化
+
+@Target({ElementType.FIELD, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy=MinValidator.class)
+public @interface Min {
+ 
+    int value() default 0;
+    String message();
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+}
+
+校验器
+public class MinValidator implements ConstraintValidator<Min, Integer> {
+ 
+    private int minValue;
+   
+    public void initialize(Min min) {
+       //把Min限制类型的属性value赋值给当前ConstraintValidator的成员变量minValue
+       minValue = min.value();
+    }
+ 
+    public boolean isValid(Integer value, ConstraintValidatorContext arg1) {
+       
+       //在这里我们就可以通过当前ConstraintValidator的成员变量minValue访问到当前限制类型Min的value属性了
+       return value >= minValue;
+    }
+ 
+}
+实体类
+public class User {
+   
+    private int age;
+   
+    private Double salary;
+ 
+    @Min(value=8, message="年龄不能小于8岁")
+    public int getAge() {
+       return age;
+    }
+ 
+    public void setAge(int age) {
+       this.age = age;
+    }
+ 
+    @Money(message="标准的金额形式为xxx.xx")
+    public Double getSalary() {
+       return salary;
+    }
+ 
+    public void setSalary(Double salary) {
+       this.salary = salary;
+    }
+   
+}
+
+
+-----------------------------------------------------------------
+ 数据验证
+
+
+spring web mvc环境中数据类型转换、验证及格式化
+ 
+1、类型转换：内部的ConversionService根据S源类型/T目的类型自动选择相应的Converter SPI 进行烈性转换，而且是强类型的，
+   能在任意类型数据之间进行转换
+2、数据验证：支持JSR-303 验证框架 如将@Valid放在需要验证的目标类型上既可
+3、格式化显示：其实就是任意目标类型-------->String的转换，完全可以使用 Converter SPI完成
+4、spring为了更好的格式化/解析功能提供了Formatter SPI 支持根据Locale信息进行格式化解析，而且该套SPI可以支持字段/参
+   数级别的细粒度格式化/解析
+
+
+ java.beans.PropertyEditor接口的类都是属性编辑器。属性编辑器的主要功能就是将外部的设置值转换为JVM内部的对应类型，
+  所以属性编辑器其实就是一个类型转换器 
+
+  可以使用JavaScript进行前台验证，但也需要在后台验证，保证在浏览器禁用了JavaScript或者用其他方式绕过前端验证的情况下，
+  保证数据的合法性
+
+Spring MVC框架支持 JSR-303 
+	默认情况下只需要增加JSR-303和他的依赖实现，Spring还提供了@Validator注解和BindingResult类，
+        可作为Controller方法中的参数使用，其中@Validator注解表示对哪个实体进行验证，而验证的错误信息可以在BindingResult里面找到
+
+
+创建自定义验证的方式
+
+1、创建 JSR-303 规范的注解
+2、实现org.springframework.validation.Validator 接口，在使用验证时用@InitBinder注解来指定使用哪个Validator接口的实现类来验证
+
+SpringMVC中使用hibernate 校验框架validation（和hibernate没有任何关系）
+
+搭建验证框架
+
+http://hibernate.org/validator 下载jar包     
+hibernate-validator-4.3.1.jar   
+jboss-logging-3.1.0.jar 
+validation-api-1.0.0.GA.jar
+
+添加到项目中
+
+    <context:component-scan base-package="com.thun.controller"/>
+    <mvc:annotation-driven validator="validator" conversion-service="conversion-service"/>
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+
+        <!-- 不设置则默认为classpath下的ValidationMessage.properties -->
+        <property name="validationMessageSource" ref="validatemessageSource"/>
+
+    </bean>
+    <bean id="conversion-service" class="org.springframework.format.support.FormattingConversionServiceFactoryBean"/>
+    <bean  id="validatemessageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource"> 
+        <property name="basename" value="classpath:validatemessages"/>
+        <property name="fileEncoding" value="utf-8"/>
+        <property name="cacheSeconds" value="120"/>
+    </bean>  
+        
+
+ValidateController
+
+@Controller
+@RequestMapping(value = "/validate")
+public class ValidateController {
+    
+    @RequestMapping(value="/test", method = {RequestMethod.GET})
+    public String test(Model model){
+
+        if(!model.containsAttribute("contentModel")){
+            model.addAttribute("contentModel", new ValidateModel());
+        }
+        return "validatetest";
+    }
+    
+    @RequestMapping(value="/test", method = {RequestMethod.POST})
+    public String test(Model model, @Valid @ModelAttribute("contentModel") ValidateModel validateModel, BindingResult result) throws NoSuchAlgorithmException{
+        
+        //如果有验证错误 返回到form页面
+        if(result.hasErrors())
+            return test(model);
+        return "validatesuccess";     
+    }
+    
+}
+
+
+其中@Valid @ModelAttribute("contentModel") ValidateModel validateModel的@Valid 意思是在把数据绑定到
+@ModelAttribute("contentModel") 后就进行验证。
+
+public class ValidateModel{
+    
+    @NotEmpty(message="{name.not.empty}")
+    private String name;
+    @Range(min=0, max=150,message="{age.not.inrange}")
+    private String age;
+    @NotEmpty(message="{email.not.empty}")
+    @Email(message="{email.not.correct}")
+    private String email;
+    
+    public void setName(String name){
+        this.name=name;
+    }
+    public void setAge(String age){
+        this.age=age;
+    }
+    public void setEmail(String email){
+        this.email=email;
+    }
+    
+    public String getName(){
+        return this.name;
+    }
+    public String getAge(){
+        return this.age;
+    }
+    public String getEmail(){
+        return this.email;
+    }
+    
+}
+
+validatemessages.properties
+
+name.not.empty=\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A\u3002
+age.not.inrange=\u5E74\u9F84\u8D85\u51FA\u8303\u56F4\u3002
+email.not.correct=\u90AE\u7BB1\u5730\u5740\u4E0D\u6B63\u786E\u3002
+email.not.empty=\u7535\u5B50\u90AE\u4EF6\u4E0D\u80FD\u60DF\u6050\u3002
+
+
+
+validatetest.jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+    <form:form modelAttribute="contentModel" method="post">     
+        
+        <form:errors path="*"></form:errors><br/><br/>
+            
+        name：<form:input path="name" /><br/>
+        <form:errors path="name"></form:errors><br/>
+        
+        age：<form:input path="age" /><br/>
+        <form:errors path="age"></form:errors><br/>
+        
+        email：<form:input path="email" /><br/>
+        <form:errors path="email"></form:errors><br/>
+
+        <input type="submit" value="Submit" />
+        
+    </form:form>  
+</body>
+</html>
+
+
+------------------------------------------------------------------------------------
+
+1、依赖 hibernate-validator-5.0.2.Final
+
+消息中使用EL表达式（2.2以上） tomcat8中el表达式版本为3.0
+
+2、spring配置文件
+
+<mvc:annotaion-driven validator="validator"/>
+<!-- 以下validator ConversionService 在使用mvc:annotation-driven会自动注册-->
+
+<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+
+    	<property name="provierClass" value="org.hibernate.validator.HibernateValidator"/>
+	<!-- 如果不加默认到 使用classpath下的validationMessages.properties-->
+	<property name="validationMessageSource" ref="messageSource"/>
+
+</bean>
+
+<!-- 国际化的消息资源文件（用于显示、错误消息定制）
+<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+    <property name="basenames">
+         <list>
+             <!-- 在web环境中一定要定位到classpath 否则默认到当前的web应用下找
+              <value>classpath:messages</value>
+              <value>classpath:org/hibernate/validator/validationMessages</value>
+         </list>
+
+    </property>
+    <property name="useCodeAsDefaultMessage" value="false"/>
+    <property name="defaultEncoding" value="UTF-8"/>
+    <property name="cacheSeconds" value="60"/>
+
+</bean>
+----------------------------------------------------------------
+此处主要把bean validation的消息查找委托给spring的messageSource
+----------------------------------------------------------------
+3、实体类注解
+
+
+public class User implements Serializable{
+
+  	@NotNull(message="{user.id.null}")
+	private Long id;
+
+	@NotEmpty(message="{user.name.null}")
+	@Length(min=5,max=20,message="{user.name.length.illegal}")
+
+	@Pattern(regexp="[a-zA-Z]{5,20}",message="{user.name.illegal}")
+	private String name;
+
+	@NotNull(message="{user.password.null}")
+	private String password;
+}
+
+4、错误消息文件
+
+messages.properties
+
+user.id.nul=用户编号不能为空
+user.name.null=用户名不能为空
+user.name.length.illegal=用户名长度必须在5到20之间
+user.name.illegal=用户名必须是字母
+user.password.null=密码不能为空
+
+
+5、控制器
+
+@Controller
+ public class UserController{
+
+   @RequestMapping("/save")
+public String save(@valid User user,BindingResult result){
+  if(result.hasErrors()){
+      return "error";
+   }
+return "success";
+
+ }
+}
+
+5、错误页面
+<spring:hasBindErrors name="user">
+    <c:if test="${errors.fieldErrorCount > 0}">
+        字段错误：<br/>
+        <c:forEach items="${errors.fieldErrors}" var="error">
+            <spring:message var="message" code="${error.code}" arguments="${error.arguments}" text="${error.defaultMessage}"/>
+            ${error.field}------${message}<br/>
+        </c:forEach>
+    </c:if>
+
+    <c:if test="${errors.globalErrorCount > 0}">
+        全局错误：<br/>
+        <c:forEach items="${errors.globalErrors}" var="error">
+            <spring:message var="message" code="${error.code}" arguments="${error.arguments}" text="${error.defaultMessage}"/>
+            <c:if test="${not empty message}">
+                ${message}<br/>
+            </c:if>
+        </c:forEach>
+    </c:if>
+</spring:hasBindErrors>
+
+-----------------------------------------------------
+
+
+分组验证
+
+
+1、解决问题,动态显示 用户名 min max 而不是 写死
+   想在修改的时候只验证用户名 ，其他的不验证
+
+2、分组验证及分组顺序
+     
+首先定义分组接口
+
+public interface First{
+
+}
+public interface Second{
+
+}
+使用分组接口标识实体
+
+public class User implements Serializable{
+
+@NotNull（message=“{user.id.null}”,groups={First.class}）
+private Long id;
+@Length(min=5,max=20,message="{user.name.length.illegal}",group={Second.class})
+private String name;
+@NotNull(message="{user.password.null}",groups={First.class,Second.class})
+private String password;
+
+}  
+
+验证时使用
+
+@RequestMapping("/save")
+public String save(@Validated({Second.class}) User user,BindingResult result){
+     if(result.hasErrors()){
+     return "error";
+}
+  return "success";
+}
+
+
+如果要验证两个的话可以
+
+@Validated（{First.class,Second. class}）
+
+----------------------------------------------------------------------------------------
+
+解决 user.name会显示两个错误消息，而且顺序不确定，如想想先验证一个消息，不通过再验证另一个 可以通过@GroupSequence指定分组验证顺序
+
+@GroupSequence（{First.class,Second.class,User.class}）
+
+public class User implements Serializable{
+
+private Long id;
+@Length(min=5,max=20,message="{user.name.length.illegal}",group={First.class})
+@Pattern（regexp=“[a-zA-Z]{5,20}”,message=“{user.name.illegal}”,groups={Second.class}）
+private String name;
+private String password;
+
+}  
+
+验证时先验证 First分组 如果有错误立即返回而不会验证Second分组，
+First分组通过在组验证Second分组，最后指定User.class 表示哪些没有分组的在最后，
+这样就按顺序验证分组了。
+
+
+
+
+
+20、数据转换
+
+public interface Converter<S, T> {
+	T convert(S source);
+}
+
+package org.springframework.core.convert.support;
+final class StringToInteger implements Converter<String, Integer> {
+	public Integer convert(String source) {
+		return Integer.valueOf(source);
+	}
+}
+
+处理post中文乱码
+
+spring web mvc框架提供了
+org.springframework.web.filter.CharacterEncodingFilter用于解决post方式造成的中文乱码问题
+
+  <filter>
+     <filter-name>characterEncodingFilter</filter-name>
+     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+     <init-param>
+        <param-name>encoding</param-name>
+        <param-value>UTF-8</param-value>
+     </init-param>
+  </filter>
+  <filter-mapping>
+     <filter-name>characterEncodingFilter</filter-name>
+     <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+
+
+
+六、Restful
+
+	@RequestMapping("/delete/{id}")
+	public String hello(@PathVariable int id){
+       		//跳转到web-content下的index.jsp
+       		return "/index.jsp";
+	}
+	请求 /delete/1.do
+
+
+
+	注解式控制器
+
+1、spring 2.5引入注解式处理器支持，通过@Controller @RequestMapping注解定义我们的处理器类
+
+需要通过处理器映射DefaultAnnotationHandlerMapping
+和处理器适配器 AnnotationMethodHandlerAdapter类开启
+@Controller和@RequestMapping
+
+1、@Controller 用于标识是处理器类
+2、@RequestMapping 请求到处理器功能处理方法的映射规则
+3、@RequestParam   请求参数到处理器功能处理方法的方法参数上的绑定
+4、@ModelAttribute：请求参数到命令对象的绑定
+5、@SessionAttributes：用于声明session级别存储的属性，放置在处理器类上，通常列出模型属性（如@ModelAttribute）对应的名称，则这些属性会透明的保存到session中
+6、InitBInder：自定义数据绑定注册支持，用于将请求参数转换到命令对象属性的对应类型
+
+2、3.0 restful架构风格支持，且引入类更多的注解支持
+      
+@CookieValue：cookie数据到处理器功能处理方法的方法参数上的绑定；
+@RequestHeader：请求头（header）数据到处理器功能处理方法的方法参数上的绑定；
+@RequestBody：请求的body体的绑定（通过HttpMessageConverter进行类型转换）；
+@ResponseBody：处理器功能处理方法的返回值作为响应体（通过HttpMessageConverter进行类型转换）；
+@ResponseStatus：定义处理器功能处理方法/异常处理器返回的状态码和原因；
+@ExceptionHandler：注解式声明异常处理器；
+@PathVariable：请求URI中的模板变量部分到处理器功能处理方法的方法参数上的绑定，从而支持RESTful架构风格的URI；
+@ModelValue绑定参数到命令对象
+@RequestPart 绑定multipart/data数据，除了能绑定@RequestParam ，能做到的请求参数外，还能绑定上传的文件等
+ 
+
+2.1、@RequestParam，绑定单个请求参数值
+	public String requestparam1(@RequestParam("username") String username)  
+	@RequestParam("username")告诉springmvc将username作为入参
+	主要参数
+		value：参数名字 ，即入参的请求参数名字
+		required：是否必须，默认是true
+		defaultValue：默认值
+	publiv test(@RequestParam(value="username",required=true,defaultValue="zhang") String username)
+
+2.2、接收多个同名参数
+   如权限用户可能有 role=user&role=admin，可以通过
+	public void roleList(@RequestParam（value="role"）List<String> list)
+
+2.3、PathVariable绑定URL模板变量值， 如
+@RequestMapping(value="/users/{userId}/topics/{topicId}") 
+	public String test(
+	@PathVariable(value="userId") int userId,
+	@PathVariable(value="topicId") int topicId
+)
+
+2.4、@CookieValue 用于将请求的Cookie数据映射到功能处理方法上
+	public String test(@CookieValue (value="JSESSIONID"，default=“”) String sessionId)
+
+2.5、SessionAttributes 绑定请求参数到命令对象
+     public String test(@ModelAttribute("user") UserModel user)  
+    
+2.6、绑定json格式的请求参数
+     json绑定到java对象
+     @RequestBody是绑定内容体到java对象的。
+
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">   
+	<!--线程安全的访问session-->  
+	<property name="synchronizeOnSession" value="true"/>   
+	<property name="customArgumentResolvers">  
+		<list>  
+			<bean class="cn.javass.spring.mvc.method.annotation.RequestJsonParamMethodArgumentResolver"/>  
+			<bean class="cn.javass.spring.mvc.method.annotation.FormModelMethodArgumentResolver"/>  
+		</list>  
+	</property>  
+</bean>
+
+
+上下文关系
+
+<context-param>
+     <param-name>contextConfigLocation</param-name>
+     <param-value>
+           classpath:spring-commons-config.xml
+           classpath:spring-budget-config.xml
+     </param-value>
+</context-param>
+<listener>
+     <listener-class>org.springframework.web.context.ContextLoaderListener
+     </listener-class>
+</listener>
+
+说明：ContextLoaderListener初始化上下文，加载的bean是对于整个应用程序共享的
+      不管使用什么表现层技术，一般如DAO层，Service层bean
+
+DispatcherServlet初始化上下文加载的bean是只对spring web mvc有效的bean
+如Controller、 HandlerMapping、HandlerAdapter该初始化上下文应该只加载web相关组件
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+新的@Contoller和@RequestMapping注解支持类：处理器映射RequestMappingHandlerMapping
+和处理器适配器RequestMappingHandlerAdapter组合来代替Spring2.5开始的处理器映射DefaultAnnotationHandlerMapping
+和处理器适配器AnnotationMethodHandlerAdapter，
+
+3、url路径映射
+
+	普通url路径映射，多个url路径映射到同一个处理器
+    	@RequestMapping("/test1","/user/create")
+
+	url模板模式映射
+      	@ReauestMapping（value=“/users/{userId}”），{xxxx}占位符 请求的url可以是/user/1234566 或者
+        /user/aaaa,通过@PathVariable可以提取URL模板模式中的{xxxx}中的xxxx变量
+    	@ReauestMapping（value=“/users/{userId}/delete”）也是可以的
+ 	@ReauestMapping（value=“/users/{userId}/topic/{topicId}”）也是可以的
+
+	过滤 @ReauestMapping（value=“/users/**”）
+
+	过滤方法
+  	@ReauestMapping（value=“/users/{userId}”method=“RequestMethod.POST”）
+
+	请求头数据中指定参数名=值
+    	@RequestMapping(value="/header/test3",headers="Content-Type="application/json"")
+
+
+
+
+
+
+
+
+
+
+七、 DataSource
+----------------------------------------------------
+DriverManagerDataSource dataSource = new DriverManagerDataSource();
+dataSource.setDriverClassName("org.hsqldb.jdbcDriver");
+dataSource.setUrl("jdbc:hsqldb:hsql://localhost:");
+dataSource.setUsername("sa");
+dataSource.setPassword("");
+----------------------------------------------------------------------------------------
+
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+<property name="driverClassName" value="${jdbc.driverClassName}"/>
+<property name="url" value="${jdbc.url}"/>
+<property name="username" value="${jdbc.username}"/>
+<property name="password" value="${jdbc.password}"/>
+</bean>
+<context:property-placeholder location="jdbc.properties"/>
+
+------------------------------------------------------------------------------------------
+dbcp
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+<property name="driverClassName" value="${jdbc.driverClassName}"/>
+<property name="url" value="${jdbc.url}"/>
+<property name="username" value="${jdbc.username}"/>
+<property name="password" value="${jdbc.password}"/>
+</bean>
+<context:property-placeholder location="jdbc.properties"/>
+
+-----------------------------------------------------------------------------------------
+c3p0
+<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+<property name="driverClass" value="${jdbc.driverClassName}"/>
+<property name="jdbcUrl" value="${jdbc.url}"/>
+<property name="user" value="${jdbc.username}"/>
+<property name="password" value="${jdbc.password}"/>
+</bean>
+<context:property-placeholder location="jdbc.properties"/>
+-----------------------------------------------------------------------------------------
+
+
+八、处理器拦截器简介
+
+1、spring web mvc的处理器拦截器（如无特殊说明，下文所说的拦截器即处理器拦截器）
+   类似于servlet开发中的过滤器Filter，用于对处理器进行预处理和后处理
+
+2、常见应用场景
+     日志记录
+     权限检察
+     性能检察
+     通用行为 ：读取cookie得到用户信息并将用户对象放入请求从而方便后续流程使用
+     本质AOP
+
+3、拦截器接口 HadlerInterceptor  
+
+   （1）3个回调方法
+     boolean preHandle（HttpServletRequest req,HttpServletResponse resp,Object handler）
+     预处理回调方法，实现处理器的预处理（如登录检查），第三个参数为响应的处理器（Controller）
+---------------------------------------------------------------------------------------
+    返回值   true表示继续流程（如调用下一个拦截器或处理器）false 表示终端流程（如登录检查失败）
+    不会调用其他拦截器或处理 器，此时我们需要通过response来产生响应
+---------------------------------------------------------------------------------------
+  void postHandle  （ HttpServletRequest request, 
+		       HttpServletResponse response,   
+                     Object handler, 
+                       ModelAndView modelAndView）
+
+后处理回调方法，实现处理器的后处理（但在渲染视图之前），此时我们可以通过modelAndView（模型和视图对象）
+对模型数据进行处理或对视图进行处理，modelAndView也可能为null
+
+void afterCompletion
+	在DispatcherServlet处理后执行-----清理工作整个请求处理完毕回调方法，即在视图渲染完毕时回调，如
+性能监控中我们可以在此记录结束时间并输出消耗时间，还可以进行一些资源清理，类似于finally，但仅调用处理器
+执行链中preHandle返回true的拦截器的afterCompletion
+
+
+
+interceptor 配置文件
+	
+	xmlns：mvc 
+       	<mvc:interceptors>
+              <mvc:interceptor>
+                      //  /**表示路径及其子路径，如果是 /admin/* 则为 /admin/add, add/list等
+                      /admin/** 拦截  /admin 及其子路径
+                      <mvc:mapping path="/**"/>
+                      <bean class="com.MyInterceptor"></bean>
+             </mvc:interceptor>
+      	</mvc:interceptors>
+	MyInterceptor实现了HandlerInterceptor接口
+
+
+4、拦截器适配器
+   有时我们只需要事项三个回调方法中的某一个，如果事项HandlerInterceptor接口的话，三个方法必须实现，
+不管你需不需要，此时spring提供了一个HandlerInterceptorAdapter适配器(一种适配器设计模式的实现)
+
+允许我们只实现需要的回调方法
+
+
+public abstract class HandlerInterceptorAdapter implements HandlerIntercepter{
+
+     //三个回调方法都是空着实现，preHandle返回true
+}
+
+举例 HandlerInterceptor1
+
+  package interceptors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+public class HandlerInterceptor1 extends HandlerInterceptorAdapter{
+	long sysTime=0;     //用于获取系统时间
+	@Override
+	public boolean preHandle(HttpServletRequest request,
+		    HttpServletResponse response, Object handler) throws Exception {
+                    //获取开始时间
+		    sysTime= System.currentTimeMillis();
+		    System.out.println("=============HandlerInterceptor1prestart"+sysTime);
+		    return true;
+	}
+	@Override
+	public void postHandle(HttpServletRequest request,
+		    HttpServletResponse response, Object handler,
+		    ModelAndView modelAndView) throws Exception {
+                    //开始于结束时间的间隔
+		    sysTime=System.currentTimeMillis()-sysTime;
+		    System.out.println("=============HandlerInterceptor1执行时间"+sysTime);
+		
+	}
+	@Override
+	public void afterCompletion(HttpServletRequest request,
+		   HttpServletResponse response, Object handler, Exception ex)throws Exception {
+                   //执行结束
+		   System.out.println("HandlerInterceptor1结束afterCompletion");
+		
+	}
+    
+}
+HandlerInterceptor2
+package interceptors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+public class HandlerInterceptor2 extends HandlerInterceptorAdapter{
+    long sysTime =0;
+	@Override
+	public boolean preHandle(HttpServletRequest request,
+		    HttpServletResponse response, Object handler) throws Exception {
+		    sysTime = System.currentTimeMillis();
+		    System.out.println("=============HandlerInterceptor2prestart"+sysTime);
+		    return true;
+	}
+
+	@Override
+	public void postHandle(HttpServletRequest request,
+		    HttpServletResponse response, Object handler,
+		    ModelAndView modelAndView) throws Exception {
+		    sysTime = System.currentTimeMillis()-sysTime;
+		    System.out.println("=========HandlerInterceptor2 postHandle执行时间"+sysTime);
+		
+	}
+
+	@Override
+	public void afterCompletion(HttpServletRequest request,
+	        HttpServletResponse response, Object handler, Exception ex)throws Exception {
+		System.out.println("HandlerInterceptor2结束afterCompletion");
+	}
+
+}
+Controller
+package controller;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.Controller;
+public class TestInterceptorController implements Controller{
+
+	@Override
+	public ModelAndView handleRequest(HttpServletRequest request,
+		    HttpServletResponse response) throws Exception {
+		    System.out.println("TestInterceptorController");
+		    return new ModelAndView("test");
+	}
+
+}
+配置文件
+    
+    <bean id="handlerInterceptor1" class="interceptors.HandlerInterceptor1"></bean>
+    <bean id="handlerInterceptor2" class="interceptors.HandlerInterceptor2"></bean> 
+    <bean name="/test" class="controller.TestInterceptorController"></bean>   
+    <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+        <property name="interceptors">
+            <list>
+               <ref bean="handlerInterceptor2"/>
+            </list>
+        </property>
+    </bean>      
+	<ref bean="handlerInterceptor1"/>
+           
+    <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+
+jsp test.jsp
+  <body>
+    <%System.out.println("this is test page====================="); %>
+  </body>
+</html>
+
+执行结果（按照interceptor的顺序执行）
+
+=============HandlerInterceptor1prestart1482134163194
+=============HandlerInterceptor2prestart1482134163194
+TestInterceptorController                                                   //执行controller
+=========HandlerInterceptor2 postHandle执行时间0 //倒叙
+=============HandlerInterceptor1执行时间0
+this is test page=====================              //jsp页面
+HandlerInterceptor2结束afterCompletion              //倒叙
+HandlerInterceptor1结束afterCompletion
+
+
+
+中断流程
+
+如将HandlerInterceptor2的preHandle（）方法返回false
+则只执行1的afterCompletion（）方法
+同时控制器不会被执行
+结果如下：
+=============HandlerInterceptor1prestart1482134817134
+=============HandlerInterceptor2prestart1482134817134
+HandlerInterceptor1结束afterCompletion
+
+===================================================
+登陆控制
+@Override  
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response,   
+Object handler) throws Exception {  
+    //1、请求到登录页面 放行  
+    if(request.getServletPath().startsWith(loginUrl)) {  
+        return true;  
+    }  
+          
+    //2、TODO 比如退出、首页等页面无需登录，即此处要放行 允许游客的请求     
+     //3、如果用户已经登录 放行    
+    if(request.getSession().getAttribute("username") != null) {  
+        //更好的实现方式的使用cookie  
+        return true;  
+    }  
+          
+    //4、非法请求 即这些请求需要登录后才能访问  
+    //重定向到登录页面  
+    response.sendRedirect(request.getContextPath() + loginUrl);  
+    return false;  
+     }  
+
+
+登录拦截器
+
+
+1、配置文件
+<?xml version="1.0" encoding="UTF-8"?> 
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:aop="http://www.springframework.org/schema/aop"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:context="http://www.springframework.org/schema/context"
+ xmlns:mvc="http://www.springframework.org/schema/mvc"
+ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd 
+  http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd"> 
+    
+  <!-- 使用组件扫描 -->
+  <!-- 将action扫描出来，在spring容器中进行注册，自动对action在spring容器中进行配置 -->
+  <context:component-scan base-package="controller"/>
+    
+  <!-- 项目的Handler 
+  <bean name="/hello.action" class="com.mvc.action.HelloAction"></bean> 
+   -->
+  <!-- 处理器映射器HandlerMapping -->
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"/> 
+    
+  <!-- 处理器设配器HandlerAdapter -->
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter"> 
+   <property name="messageConverters"> 
+    <list> 
+     <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"></bean> 
+    </list> 
+   </property> 
+  </bean> 
+  <mvc:annotation-driven></mvc:annotation-driven> 
+  <!-- 拦截器 -->
+  <mvc:interceptors> 
+       <!-- 多个拦截器，顺序执行 -->
+       <mvc:interceptor> 
+          <mvc:mapping path="/**"/> 
+          <bean class="interceptors.LoginInterceptor"></bean> 
+       </mvc:interceptor> 
+  </mvc:interceptors> 
+   
+</beans>
+
+2、控制器
+package controller;
+import javax.servlet.http.HttpSession;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import entity.User;
+
+@Controller
+public class LoginController {
+
+	@RequestMapping(value="/login")
+	public String login(HttpSession session,User user){
+		session.setAttribute("name", user.getName());
+		return "redirect:hello.action";
+	}
+	@RequestMapping(value="/logout")
+	public String logout(HttpSession session) throws Exception{
+		session.invalidate();
+		return "redirect:hello.action";
+	}
+}
+
+
+
+3、拦截器
+package intercepters;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+public class LoginIntercepter implements HandlerInterceptor{
+
+	@Override
+	public boolean preHandle(HttpServletRequest request,HttpServletResponse response, Object handler) throws Exception {
+		String url = request.getRequestURI();
+		//是否是登录请求
+		if(url.indexOf("login.action")>=0){
+			return true;
+		}
+		HttpSession session = request.getSession();
+		String name = (String)session.getAttribute("name");
+		if(name!=null){
+			return true;
+		}
+		//不符合条件跳转到登录界面
+		request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
+		return false;
+	}
+
+	@Override
+	public void postHandle(HttpServletRequest request,HttpServletResponse response, Object handler,
+			ModelAndView modelAndView) throws Exception {
+
+		
+	}
+
+	@Override
+	public void afterCompletion(HttpServletRequest request,HttpServletResponse response, Object handler, Exception ex)
+			throws Exception {
+		
+	}
+}
+
+
+
+九、使用
+
+
+文件上传 
+	MultipartFile接口主要方法
+
+	String getName()              parameter的name属性
+	String getOriginalFilename（）得到文件原始的名字
+	String getContentType（）
+	boolean isEmpty（）           判断是否为空
+	long getSize（）              bytes数
+	byte[] getBytes()
+	getInputStream()
+	void transferTo(File dest)    //转存
+	实现类
+     		CommonsMultipartFile 
+
+文件上传实例
+
+commons-collections-3.2.2.jar
+commons-fileupload-1.3.2.jar
+commons-io-2.4.jar
+commons-lang-2.4.jar
+commons-lang3-3.4.jar
+commons-logging-1.1.3.jar
+jstl.jar
+spring-aop-4.1.6.RELEASE.jar
+spring-aspects-4.1.6.RELEASE.jar
+spring-beans-4.1.6.RELEASE.jar
+spring-context-4.1.6.RELEASE.jar
+spring-context-support-4.1.6.RELEASE.jar
+spring-core-4.1.6.RELEASE.jar
+spring-test-4.1.6.RELEASE.jar
+spring-tx-4.1.6.RELEASE.jar
+spring-web-4.1.6.RELEASE.jar
+spring-webmvc-4.1.6.RELEASE.jar
+standard.jar
+
+web.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" 
+	xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+  <display-name></display-name>	
+  <!-- 解决post乱码 -->
+  <filter>
+      <filter-name>characterEncodingFilter</filter-name>
+      <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+      <init-param>
+          <param-name>encoding</param-name>
+          <param-value>UTF-8</param-value>
+      </init-param>
+      <init-param>
+          <param-name>forceEncoding</param-name>
+          <param-value>true</param-value>
+      </init-param>
+  </filter>
+  <filter-mapping>
+     <filter-name>characterEncodingFilter</filter-name>
+     <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <!-- 配置前端控制器 -->
+  <servlet>
+      <servlet-name>mvc</servlet-name>
+      <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+      <servlet-name>mvc</servlet-name>
+      <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+  <!-- 默认显示的页面 -->
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>
+
+
+mvc-servlet.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:context="http://www.springframework.org/schema/context"
+ xmlns:tx="http://www.springframework.org/schema/tx"
+ xmlns:p="http://www.springframework.org/schema/p"
+ xmlns:mvc="http://www.springframework.org/schema/mvc"
+ xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-4.1.xsd
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd"
+    default-autowire="byName" default-lazy-init="true">
+    <!-- 启用注解 -->
+    <mvc:annotation-driven/>
+    <!-- 扫描的处理器（Controller）的包 -->
+    <context:component-scan base-package="controller"/>
+    <!-- 文件上传表单的视图解析器-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+       <property name="maxUploadSize" value="5151400"/>
+    </bean>    
+</beans>
+
+index.jsp
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <base href="<%=basePath%>"> 
+    <title>My JSP 'index.jsp' starting page</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+  </head>
+  <body>
+    <form method="post" action="<%=path%>/form.do" enctype="multipart/form-data">
+        姓名：<input type="text" name="name"/><br>
+        文件： <input type="file" name="file"><br>
+        <input type="submit" value="上传"/>   
+    </form>
+  </body>
+</html>
+
+FileUploadController
+package controller;
+import java.io.File;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
+import model.User;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+@Controller
+public class FileUploadController{
+     @RequestMapping(value="/form",method=RequestMethod.POST)
+     public String handleFormUpload(HttpServletRequest request,
+				  @ModelAttribute("user") User user, 
+				  String name,
+				  @RequestParam("file") MultipartFile file) throws Exception{
+	if(!file.isEmpty()){ 
+		//可以对user做一些操作如存入数据库
+		//以下的代码是将文件file重新命名并存入Tomcat的webapps目录下项目的下级目录fileDir
+ 		String fileRealName = file.getOriginalFilename();       //获得原始文件名;
+		int pointIndex =  fileRealName.indexOf(".");            //点号的位置	    
+		String fileSuffix = fileRealName.substring(pointIndex); //截取文件后缀
+		UUID FileId = UUID.randomUUID();                        //生成文件的前缀包含连字符
+		String savedFileName = FileId.toString().replace("-","").concat(fileSuffix);     //文件存取名
+		String savedDir = request.getSession().getServletContext().getRealPath("fileDir"); //获取服务器指定文件存取路径	
+		//最终存到数据库中的字符串包含转义字符，如果是c:\erwe.txt 那么存到数据库后就是c：		
+		String db_path = savedDir.concat("\\"+savedFileName).replace("\\", "\\\\");
+		System.out.println(db_path);
+		user.setPhotoPath(db_path); //设置user对象的photo路径，以后去数据库中取得路径并加载
+		File savedFile = new File(savedDir,savedFileName );
+		boolean isCreateSuccess = savedFile.createNewFile();
+		if(isCreateSuccess){					
+			file.transferTo(savedFile);//转存文件
+		}
+		return "redirect:success.jsp";	
+   	 }
+    	 return "redirect:error.jsp";
+     }
+}
+
+
+
+十、Ajax And JSON 
+
+1、不需要配置解析器（）
+@Controller
+public class AjaxController(){
+   @RequestMapping("/ajax")
+   public void ajax(String name,HttpServletResponse resp){
+          if("aa".equals(name)){
+                  resp.getWriter().print("true");
+           }
+    }
+}
+
+js 引入jquery的文件
+
+<srcipt type="text/javascript">
+    $(function(){
+           $("#txName").blur(
+                function(){ //发送post请求
+                      
+                     $.post(
+            		"ajax.do",{'name':$("#txName").val()},                     
+                         function(data){//回调函数
+                                  alert(data);
+                        }
+                      ) ;
+                 }
+            );
+     });
+
+</script>
+
+<input type="text" id="txName"/>
+
+2、springmvc 处理json
+
+配置解析器
+
+<!-- 用于将对象转换为 JSON  -->  
+   <bean id="stringConverter"  
+        class="org.springframework.http.converter.StringHttpMessageConverter">  
+        <property name="supportedMediaTypes">  
+            <list>  
+                <value>text/plain;charset=UTF-8</value>  
+            </list>  
+        </property>  
+    </bean>  
+
+    <bean id="jsonConverter"  
+        class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"></bean>  
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">  
+       <property name="messageConverters">  
+           <list>  
+                <ref bean="stringConverter" />  
+                <ref bean="jsonConverter" />  
+            </list>  
+        </property>  
+    </bean>  
+
+Controller
+@Controller
+public class JsonController{
+
+   @RequestMapping("/json")
+   @RequestBody
+   public List<User> json(){
+         List<User> list = new ArrayList<User>();
+         list.add(new User(1,"zhangsan","男"))；
+         list.add(new User(2,"lisi","男"))；   
+       //直接返回list就可以 
+         return list;
+    }
+}
+
+页面
+
+<srcipt type="text/javascript">
+    $(function(){
+           $("#btn").click(
+                function(){
+                      //发送post请求
+                     $.post("json.do",
+                         function(data){  //回调函数
+                            var html = '";    
+                             for(var i=0;i<data.length;i++){
+                                 html+="
+                                          <tr>
+                                              <td>"+data[i].id+"</td>
+                                              <td>"+data[i].name+"</td>
+                                              <td>"+data[i].sex+"</td>
+                                            </tr>
+                                  "
+                               }
+                             $("#content").html(html);  //设置tbody
+                        }
+                      ) ;
+                 }
+            );
+     });
+
+</script>
+
+<input type="button" id="btn" value="获取"/>
+
+<table width="80%" align="center" >
+    <tr>
+            <td>编号</td>
+            <td>姓名</td>
+            <td>性别</td>
+     </tr>
+    <tbody id="content"></tbody>
+</table>
+
+
+
+
+
+十一、	JdbcTempalte 
+
+
+
+1、jdbcTemplate类是jdbc核心包中的中心类，它处理创建和释放资源，执行jdbc工作流的基本任务，
+   例如语句创建和执行，离开应用程序代码提供Sql和提取结果
+	1、继承自JdbcAccessor
+	2、实现了JdbcOperations 接口
+	3、是JDBC核心包中的中心类
+	4、执行核心JDBC工作流，启动对ResultSet迭代
+	5、并捕获Jdbc异常，并转换为org.springframework.dao包中定义的通用的更多信息的异常层次结构
+	6、这个类的实例在配置后是线程安全的
+
+
+	实例化
+   	构造函数;
+    	public JdbcTemplate()
+    	public JdbcTemplate(DataSource dataSource)   
+    	public JdbcTemplate(DataSource dataSource,boolean lazyInit)
+
+    	lazyInit 标志将触发异常翻译器的初始化
+
+2、完成
+（1）执行SQL 查询，更新语句和存储过程调用
+（2）对ResultSet和提取执行迭代返回的参数值
+（3）捕获JDBC异常，并将其转换为通用的更多信息性的
+
+3、查询实例
+
+
+配置jdbcTemplate
+
+public class dao{
+
+    private JdbcTemplate jdbcTemplate；
+    public void setDataSource（DataSource dataSource）{
+       this.jdbcTemplate = new jdbcTemplate(dataSource);
+    }
+}
+
+<bean id="dao" class="dao">
+        <property name="dataSource" ref="dataSource"/>
+</bean>
+<dataSource id="dataSource" class="org.commons.dbcp.BasicDataSource" destroy-method="close">
+    <property name="driverClassName" value="${xx}" />
+    .............................
+</dataSource>
+<context:property-placeholder location="jdbc.propertied"/>
+
+  或者在dao类的上方配置@Respository,在jdbcTemplate set方法上@Autowired
+  配置文件中
+ <context:component-scan base-package="dao包">
+ 
+
+查询    
+
+(1) 返回数据的行数
+    int rowCount = this.jdbcTemplate.queryForObject(
+    "select count(*) from t_xx ",Integer.class);
+
+(2) 返回指定数据的行数
+   int JoeCount  =  this.jdbcTemplate.queryForObject（
+          select count（*） from t_xx where first_name=?", Integer.class,"Joe"）
+
+(3) 字符串的查询
+
+	String lastName =   this.jdbcTemplate.queryForObject（
+     	select last_name from t_xx where id=?,
+     	new Object[]{1212L},String.class);
+
+(4)查询和填充单个域对象
+
+Actor actor = this.jdbcTemplate.queryForObject(
+
+    "select first_name,last_name From t_actor where id=?",
+    new Object[]{1212L},
+    new RowMapper<Actor>(){
+           public Actor mapRow(ResultSet rs,int rowNum) throws Exception{
+                  Actor actor = new Actor();
+                  actor.setFirstName(rs.getString("first_name"));
+                  actor.setLastName(rs.getString("last_name"));
+                  return actor;
+          }
+    }
+);
+
+(5)查询和填充多个域对象
+
+List<Actor> actors = this.jdbcTemplate.query(
+          "select first_name,last_name from t_actor",
+           new RowMapper<Actor>(){
+                      public Actor mapRow(ResultSet rs,int rowNum)throws  SQLException{
+                                  Actor actor = new Actor();
+                                  actor.setFirstName(rs.getString("first_name"))  ;
+                                  actor.setFirstName(rs.getString("last_name"))  ;
+                                  return actor;
+                      }
+          },);
+
+或者将方法抽取出来,要实现MapperRow接口（顾名思义行映射器 ）即将查询出的行映射到实体类中
+这其中主要的方法就是mapRow 用于对应具体的实体类
+
+package jdbctemplate;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import entity.Actor;
+
+public class SpringJDBC {
+  private JdbcTemplate jdbcTemplate;
+  public List<Actor> findAllActors(){
+   String sql = "select first_name,Last_name from t_actor";
+   return this.jdbcTemplate.query(sql, new ActorMapper());
+  }
+    private static final class ActorMapper implements RowMapper{
+      public Actor mapRow(ResultSet rs,int rowNum)throws SQLException{
+       Actor actor = new Actor();
+       actor.setFirstName(rs.getString("first_name"));
+       actor.setLastName(rs.getString("last_name"));
+       return actor;
+     }
+    }
+}
+
+更新（update delete insert）
+
+  1、使用update 进行插入
+    this.jdbcTemplate.update(
+     "insert into t_actor(first_name,last_name)
+     values(?,?)"
+     );
+  2、  更新表
+     this.jdbcTemplate.update(
+       "update t_actor set last_name=? where 
+        id=?","Banjo",5276L
+     ）
+  3、   删除数据
+       this.jdbcTemplate.update(
+       "delete from actor where id=?",
+       Long.valueOf(actorId)
+      )
+  4、使用execute方法执行DDL语句
+    this.jdbcTemplate.execute
+    (create table mytable(id integer,name varchar(30)) );
+
+
+
+批处理
+
+package springsource;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import entity.Actor;
+public class Batch {
+    private JdbcTemplate jdbcTemplate;
+
+    public void setDataSource(DataSource dataSource){
+    	this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    public int[] batchUpdate(final List<Actor> actors){
+    	int[] updateCounts = null;
+    	String sql = "update t_actor set first_name=?,last_name=? where id=?";
+    	updateCounts = this.jdbcTemplate.batchUpdate(sql, 
+    			new BatchPreparedStatementSetter(){
+    		        //设置preparedStatement的参数
+    		        public void setValues(PreparedStatement ps,int i)throws SQLException{
+    		        	ps.setString(1, actors.get(i).getFirst_name());
+    		        	ps.setString(2, actors.get(i).getLast_name());
+    		        	ps.setString(3, actors.get(i).getId());
+    		        }
+    		        //得到批处理的大小
+    		        public int getBatchSize(){
+    		        	return actors.size();
+    		        }
+    	        }
+        );
+    	return updateCounts;
+    }
+}
+
+
+public class JdbcActorDao implements ActorDao {
+	private NamedParameterTemplate namedParameterJdbcTemplate;
+	public void setDataSource(DataSource dataSource) {
+		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+	}
+
+	public int[] batchUpdate(final List<Actor> actors) {
+		SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(actors.toArray());
+		int[] updateCounts = namedParameterJdbcTemplate.batchUpdate(
+		"update t_actor set first_name = :firstName, last_name = :lastName where id = :id",batch);
+		return updateCounts;
+	}
+	// ... additional methods
+}
+
+
+分批处理
+
+
+public class JdbcActorDao implements ActorDao {
+
+        private JdbcTemplate jdbcTemplate;
+        public void setDataSource(DataSource dataSource) {
+                         this.jdbcTemplate = new JdbcTemplate(dataSource);
+         }
+
+	//二维数组 一维 执行的批次数，二维每个批次更新的数量
+        public int[][] batchUpdate(final Collection<Actor> actors) {
+
+		int[][] updateCounts = jdbcTemplate.batchUpdate(
+		"update t_actor set first_name = ?, last_name = ? where id = ?",actors, 100,
+		new ParameterizedPreparedStatementSetter<Actor>() {
+			public void setValues(PreparedStatement ps, Actor argument) throws SQLException {
+    				ps.setString(1, argument.getFirstName());
+   				ps.setString(2, argument.getLastName());
+    				ps.setLong(3, argument.getId().longValue());
+   			}
+		});
+		return updateCounts;
+	}
+	// ... additional methods
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,237 @@
+	
+		Git
+
+中文教程：网址
+	https://gitee.com/progit/
+
+1、Git初步
+	在工作目录中初始化欣仓库
+   	git init
+
+	文件纳入版本控制
+   	git add *.c
+	git add README
+	git commit -m "initial project version"
+
+	克隆git仓库
+      	git clone gitURL
+
+2、git创建分支
+
+	新建分支
+     	git checkout -b issu53
+      	在checkout之前需要将暂存区内的内容提交，那些还没有提交的修改，会和你即将
+      	检出的分支产生冲突，从而阻止git为你切换分支
+      	git会把工作目录的内容恢复为检出某分支时所指向的那个提交对象的快照
+    
+
+    	git checkout -b "hotfix"
+   	git commit -a -m "hotfix fix bug"
+
+	修补之后进行合并
+     	git checkout master
+     	git merge hotfix
+     
+	删除无用分支
+    	git branch -d hotfix
+   
+	回到之前的分支
+     	git checkout issu53
+
+
+	master与issu53进行合并怎么办?
+     	回到 master分支
+             git merge issu53
+
+                         
+                        master
+                         |
+	co <- c1 <-c2 <-c4
+                       <- c3 <-c5
+                                |
+                               issu53
+
+	由于C4并不是C5的直接祖先，git会用两个分支的末端（C4、C5）以及它们的
+	共同祖先C2进行一次简单的三方合并计算
+
+
+	issu53没用了，可以删除
+	git branch -d issu53
+
+3、git分支
+
+	git保存的不是文件差异或者变化量，而是一系列文件快照
+     	适用场景：软件出现了一个bug，需要解决，在原基础上新建分支，解决bug后进行合并，并开发新的需求
+	git checkout -b branchName（或者 git branch branchName;git checkout branchName）
+
+	commit对象是链式存储的
+     	每次提交都有一个指向之前提交的指针
+
+	什么是分支
+
+    	本质上是一个指向commit对象的可变指针，git会使用master作为分支的默认名字，
+        在若干次提交后，你其实已经有了一个指向最后一次提交对象的master分支，它在
+	每次提交的时候都会自动向前移动
+
+	如何创建一个分支
+      	git branch testing  
+      	这会在当前commit对象上新建一个分支指针
+
+	怎样切换到该分支（让HEAD 指向当前所在的分支）
+     	git checkout  testing
+
+
+	再切回到master
+      	git checkout master
+     	所做的事情：将HEAD指针移动到master分支，并把工作目录切换成了master分支所指向的快照内容
+
+4、查看配置信息
+
+	git config --list
+
+	core.symlinks=false
+	core.autocrlf=true
+	core.fscache=true
+	color.diff=auto
+	color.status=auto
+	color.branch=auto
+	color.interactive=true
+	help.format=html
+	http.sslcainfo=D:/DevelopseIntall/git/Git/mingw64/ssl/certs/ca-bundle.crt
+	diff.astextplain.textconv=astextplain
+	rebase.autosquash=true
+	credential.helper=manager
+	user.name=xxx
+	user.email=xxxx
+
+	git帮助 git help  commit
+
+
+5、解决冲突
+	出现conflict
+     	git status查看
+     	修改文件，git add 到暂存区
+     	git commit -m “3443”
+
+	显示已经合并的分支
+     	git branch --merged
+      	列表中不带* 的分支通常都可以用
+    	git branch -d name 删掉
+
+	显示未合并的分支
+        git branch --no-merged
+
+6、文件状态
+	工作目录下的文件：
+      		已跟踪和未跟踪
+      		已跟踪：本来就被纳入版本控制的文件，在上次快照中有他们的记录
+       		在编辑过这些文件后，git将这些文件标记为已修改
+
+	检查当前文件状态
+      	git status
+
+	跟踪新文件
+     	git add README(文件名)
+	
+
+	忽略某些文件
+	创建一个名为.gitignore的文件
+	cat .gitignore
+     		*.[oa]
+     		*.~
+    		build/
+	意思是：忽略掉.a 或.o结尾的文件，一般这类对象都是编译过程中出现的
+	~结尾的一般是文件的副本
+	忽略build目录下的所有文件
+
+	查看修改了哪些地方
+	git diff
+
+	放入暂存区
+    	git add 修改的文件
+
+7、操作
+	
+	【提交修改】
+  	git commit -m “update message”
+  	跳过试用暂存区，在提交的时候，给 git commit 加上-a选项
+ 	git会自动把所有文件暂存起来一并提交，从未跳过git add步骤
+
+	git commit  -a -m “skip add”
+
+	
+	【git改名操作】
+     	git mv file_from file_to
+
+	
+	【git log 查看历史】
+      	git log -p -2
+      	-p 选项展开显示每次提交的内容差异
+      	-2 仅显示最近的两次更新
+       	git log --stat 仅显示简要的增改行数统计
+       	git log --since=2.weeks 按照时间做限制
+       	git log --author xxxg 指定作者的提交
+
+	【撤销操作】
+	修改最后一次提交，重新提交
+	git commit --amend
+
+	【取消已经暂存的文件】
+	如不小心 git add . 全加到了暂存区
+	git reset HEAD some.txt
+	则some.txt会回到未暂存的状态
+
+	【取消对文件的修改】
+        git checkout --some.txt 这样会将之前的修改全部抹掉
+
+8、查看远程仓库
+	git remote -v
+
+
+9、远程仓库基本操作
+
+	添加远程仓库
+      	git remote add shorname url
+      	抓取shorname远程仓库有的，本地仓库没有的信息
+     	git fetch shortname
+
+
+	推送数据到远程仓库
+      	git push [remote-name] [branch-name]
+      	git push origin master
+
+	查看远程仓库信息
+     	git remote show [remote-name]
+
+	远程仓库重命名
+    	git remote rename pb  paul
+    	对远程仓库重命名，会使对应的分支名称发生变化
+   	如原来的 pb/master  分支变成了 paul/master
+
+                    
+	移除远端仓库
+      	git remote rm paul
+
+
+
+
+
+
+
+
+
+
+
+
+       
+
+
+
+
+
+
+
+
+
+
+

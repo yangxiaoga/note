@@ -1,0 +1,261 @@
+	
+		Python
+
+
+一、高级        
+    1、C++ JAVA 现代编译语言
+	2、Perl Python 可以进行系统调用的解释型脚本语言
+			
+二、可面向对象
+	class Fish:
+		hungry = True
+		def eat(self,food):
+			if food is not None:
+				self.hungry = False
+        					  
+	class User:
+		def _init_(self,name):
+			self.name = name	
+			   
+	构造Fish实例
+		f = Fish()
+		Fish.eat(f,"earthworm")
+		f.eat("earthworm")
+
+	构造User实例
+		u = User("username")
+		print(u.name)
+
+三、支持高级数据结构
+
+        1、元组、列表、字典
+		
+	2、可拓展
+	   Python Jython 
+	3、快速原型开发工具
+	4、内存管理
+	5、查看具体的方法
+	help("class")
+	Here is a list of the Python 【keywords】.  Enter any keyword to get more help.
+
+	and                 elif                if                  print
+	as                  else                import              raise
+	assert              except              in                  return
+	break               exec                is                  try
+	class               finally             lambda              while
+	continue            for                 not                 with
+	def                 from                or                  yield
+    	del                 global              pass                
+
+
+四、Python注意事项
+
+	出现中文，编译报错
+		在顶部添加#coding=UTF-8
+	需要换行
+		加\
+	   
+	Python中空为None
+	    
+	不等于的表示
+		1！=2  1<>2
+		
+	注释的书写
+		##########################
+	   	#这是方法的中文注释
+	   	##########################
+
+	无count++这种运算
+	
+	分别赋值
+	   x,y,z =1,'ttt',1.1
+	   
+	在字符中使用变量，不能用java中的"str"+var+"str1"
+	   x,z = 1,3.5
+	   print '%d is in %f' %(x,z)
+	   
+
+五、 Python字符串操作，以下全部为左闭右开
+	
+	指定位置的元素
+	str = 'Python'，str[0]
+	   
+	从指定位置开始到指定位置结束，(即包括2不包括5)
+	str[2:5]
+	   
+	到指定位置  
+	str[:2]
+		
+	从指定位置开始
+       	str[3:]
+	   
+	最后一个
+       	str[-1]
+      
+	字符串相加
+       	str1+str2 
+	   
+	字符串复制
+	str*2，如print str*2
+
+   	将其他类型转成其他类型
+	str(t)
+
+	字符串长度
+        len(str1)
+
+	range(2,10,2)
+	生成一个数组其中，数组中的起始值为2，间隔为2，终值为10
+
+	即[ 2,4,6,8,10]
+
+
+
+六、Python数据结构
+	   
+	【元组】,可以是不同类型的，只读，不能更改元素的值，即只读列表
+	aTuple = ('robot',77,45.6,56)，取得 aTuple[0:2](同样遵循)
+	遍历
+	for x in aTuple:
+		print x;
+
+	【列表】 aList = [1,2,3,'str1']
+
+	取得元素
+        aList[0]，aList[2:]，aList[:3]
+
+	修改元素 aList[1] = 5
+
+	遍历元素
+	for x in aList:
+		print x;
+
+	【字典，键值对】   
+
+		创建字典
+                aDict = {}
+
+		添加元素，
+			字符串键值aDict['port'] = 80
+                   	整数键值  aDict[1] = 8080
+
+		使用字典
+			aDict['port']
+                     	print aDict['port']
+  
+		None值
+                      	aDict[None] = 8088
+                      	aDict[None] = None   
+
+		遍历
+		无下标的遍历
+		for key in aDict:
+			print key,aDict[key]
+
+		有下标的遍历
+                for i,key in enumerate(aDict):
+			print i,key,aDict[key]
+ 
+		删除字典中的元素
+                del aDict['port']
+                del aDict[1]
+
+
+
+	【#lambda 排序】
+	一个list中盛装有 字典的排序
+
+	data = []
+	data.append({"provice":"beijing","order_price":100,"user_count":100,"total_price":10000})
+	data.append({"provice":"shanghai","order_price":200,"user_count":50,"total_price":10000})
+	data.append({"provice":"shenzhen","order_price":300,"user_count":10,"total_price":3000})
+	#z代表每一个元素，对每一个元素的user_count 进行排序(reverse为倒叙)
+	data.sort(key=lambda z:(z["user_count"]),reverse=True)
+	#注意 z也可以换成任意的字母，
+	for d in data:
+    		print d
+
+	结果：
+	{'provice': 'beijing', 'user_count': 100, 'total_price': 10000, 'order_price': 100}
+	{'provice': 'shanghai', 'user_count': 50, 'total_price': 10000, 'order_price': 200}
+	{'provice': 'shenzhen', 'user_count': 10, 'total_price': 3000, 'order_price': 300}
+
+
+	如果想让多个字段进行排序（z无负号代表正序（由于reverse为倒叙）， -z 负号代表正序）
+
+	data.sort(key=lambda z:(z["user_count"],-z["order_price"]),reverse=True)
+
+	{'provice': 'beijing', 'user_count': 100, 'total_price': 10000, 'order_price': 100}
+	{'provice': 'shanghai', 'user_count': 50, 'total_price': 10000, 'order_price': 200}
+	{'provice': 'shenzhen', 'user_count': 10, 'total_price': 3000, 'order_price': 300}
+
+
+	range(2,10,2)生成小于指定值得数
+	生成一个数组其中，数组中的起始值为2，间隔为2，终值为8，即[ 2,4,6,8]
+
+
+七、批量重命名文件
+
+	str.replace(old, new[, max])
+	
+	#!/usr/bin/env python
+	#coding=UTF-8
+	import os
+	import shutil
+	#路径
+	path= 'D:\\SoftwareInstallation\\Project\\HelloPython\\com\\hello\\test\\'
+	#遍历路径下的文件，i为文件名如 tt1.txt
+	for i in os.listdir(path):
+    		new_file = i.replace('tt','pp')
+    		old_full_file = path+i 
+    		new_full_file = path+new_file
+    		#重命名
+    		shutil.move(old_full_file,new_full_file)
+	print 'Done'
+
+八、 文件操作
+
+	打开文件
+
+    	poem = 'this is a poem to pretty girl'
+	f = open('D:\\SoftwareInstallation\\Project\\HelloPython\\com\\hello\\test\\pp0.txt','a')
+	f.write(poem)
+	f.close()
+
+	如果参数为 r  代表以read的方式来打开 
+	如果参数为w 代表以写的方式来打开， 文件的写入是以覆盖的方式来执行的
+	如果参数为a 代表以追加的方式打开，文件的写入是以追加的方式来执行的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          
+	   
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

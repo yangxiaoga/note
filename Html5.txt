@@ -1,0 +1,677 @@
+	
+		HTML5
+
+
+
+
+1、article元素
+
+<body>
+   <article>
+       <header>
+           <h1>谷歌董事长，每天把手机电脑关机1小时</h1>
+           <time pubdate=pubdate>2012年05月21日 09:04</time>
+       </header>
+       <p>新浪科技讯 北京时间5月21日早间消息，谷歌(微博)执行董事长埃里克.施密特在波士顿大学发表演讲时
+           表示，大学生应当将目光从智能手机和电脑屏幕上移开。
+       </p>
+       <footer>
+           <p>http://www.sina.com</p>
+       </footer>
+   </article>
+</body>
+
+
+article还可以嵌套
+如文章的评论可用如下的section 每则评论都是一个article
+
+<body>
+   <article>
+       <header>
+           <h1>谷歌董事长，每天把手机电脑关机1小时</h1>
+           <time pubdate=pubdate>2012年05月21日 09:04</time>
+       </header>
+       <p>新浪科技讯 北京时间5月21日早间消息，谷歌(微博)执行董事长埃里克.施密特在波士顿大学发表演讲时
+           表示，大学生应当将目光从智能手机和电脑屏幕上移开。
+       </p>
+       <footer>
+           <p>http://www.sina.com</p>
+       </footer>
+
+       <section>
+           <h2>评论</h2>
+           <article>
+               <header>
+                   <h3>张三</h3>
+                   <p>
+                       <time pubdate=pubdate></time>
+                   </p>
+               </header>
+               <p>
+                  ok
+               </p>
+           </article>
+
+           <article>
+               <header>
+                   <h3>李四</h3>
+                   <p>
+                       <time pubdate=pubdate></time>
+                   </p>
+               </header>
+               <p>
+                   ok too
+               </p>
+           </article>
+       </section>
+   </article>
+</body>
+
+
+
+
+
+
+2、帮助用户在input中自动完成输入
+
+如input中专门定义一些常用的选项
+
+<form autocomplete="on">
+    <input autocomplete="off"/>
+</form>
+
+
+<form action="#" method="get" autocomplete="on">
+      <input type="text" id="city" list="cityList"/>
+</form>
+
+
+3、autofocus
+
+显示被激活
+<input type="submit" value="同意" autofocus="on">
+
+
+4、canvas画布
+
+	要加上id
+<body>
+   <canvas id="myCanvas" width="200" height="100" style="background-color:#000"></canvas>
+</body>
+
+	绘制图形
+
+<body>
+<canvas id="myCanvas" width="300" height="200" style="background-color:#fff;border:1px solid"></canvas>
+<script type="text/javascript">
+    //获取到画布
+    var canvas = document.getElementById("myCanvas");
+    //上下文
+    var context = canvas.getContext("2d");
+    //设置填充色
+    context.fillStyle="#FF00FF";
+    //设置描边的颜色
+    context.strokeStyle="blue";
+    context.fillRect(20,20,100,100);
+    context.strokeRect(20,20,100,100);
+    context.fill();
+    context.stroke();
+    //保存当前canvas状态
+    context.save();
+    //绘制另一个矩形
+    context.fillStyle="#ff0000";
+    context.strokeStyle="green";
+    context.fillRect(140,20,100,100);
+    context.strokeRect(140,20,100,100);
+    context.fill();
+    context.stroke();
+    //恢复第一个矩形的状态
+    context.restore();
+    context.fillRect(20,140,50,50);
+    context.strokeRect(80,140,50,50);
+</script>
+</body>
+
+
+5、绘制其他图形 
+
+5.1、vanvas中绘制直线
+
+<body>
+   <canvas id="myCanvas" width="200" height="100" style="background-color:#fff;border:1px solid"></canvas>
+   <script type="text/javascript">
+       //获取到画布
+      var canvas = document.getElementById("myCanvas");
+       //上下文
+       var context = canvas.getContext("2d");
+
+       //建立新的子路径
+       context.moveTo(0,0);
+       //如果没有上面的moveTo方法下面的lineTo相当于moveTo
+       context.lineTo(200,100);
+       //沿着该路径绘制一条直线
+       context
+
+   </script>
+</body>
+
+
+5.2、绘制矩形
+<body>
+   <canvas id="myCanvas" width="200" height="100" style="background-color:#fff;border:1px solid"></canvas>
+   <script type="text/javascript">
+       //获取到画布
+       var canvas = document.getElementById("myCanvas");
+       //上下文
+       var context = canvas.getContext("2d");
+       context.fillStyle="#00FF00";
+       context.fillRect(50,25,100,50);
+   </script>
+</body>
+
+
+或者使用stroke
+<body>
+   <canvas id="myCanvas" width="200" height="100" style="background-color:#fff;border:1px solid"></canvas>
+   <script type="text/javascript">
+       //获取到画布
+      var canvas = document.getElementById("myCanvas");
+       //上下文
+       var context = canvas.getContext("2d");
+       //设置边框的颜色
+       context.strokeStyle="#00FF00";
+       //stroke表示轮廓的意思，轮廓的边线
+       context.strokeRect(50,25,100,50);
+   </script>
+</body>
+
+
+两者配合使用
+<body>
+   <canvas id="myCanvas" width="200" height="100" style="background-color:#fff;border:1px solid"></canvas>
+   <script type="text/javascript">
+       //获取到画布
+      var canvas = document.getElementById("myCanvas");
+       //上下文
+       var context = canvas.getContext("2d");
+       //填充内背景颜色
+       context.fillStyle="#FFFF00";
+       context.fillRect(50,25,100,50);
+       //填充外轮廓线
+       context.strokeStyle="#00FF00";
+       context.strokeRect(50,25,100,50);
+
+   </script>
+</body>
+
+
+5.3、绘制圆形
+<body>
+   <canvas id="myCanvas" width="200" height="200" style="background-color:#fff;border:1px solid"></canvas>
+   <script type="text/javascript">
+       //获取到画布
+      var canvas = document.getElementById("myCanvas");
+       //上下文
+       var context = canvas.getContext("2d");
+       context.fillStyle="#FF00FF";
+       //表示开始绘制路径
+       context.beginPath();
+       //绘制弧线
+       //（坐标x,坐标y,半径,开始角度，结束角度，是否顺时针）
+       context.arc(100,75,50,0,Math.PI*2,true);
+       //结束路径绘制
+       context.closePath();
+       //以填充色进行填充
+       context.fill();
+   </script>
+</body>
+
+
+
+使用stroke
+context.strokeStyle="#FF00FF";
+context.beginPath();
+context.arc(20,50,5,0,Math.PI*2,true);
+//天假结束点画一个圆
+context.closePath();
+//外边框为设置的颜色
+context.stroke();
+
+5.4、绘制三角形
+<script type="text/javascript">
+    //获取到画布
+   var canvas = document.getElementById("myCanvas");
+    //上下文
+    var context = canvas.getContext("2d");
+    context.fillStyle="red";
+    context.beginPath();
+    context.moveTo(25,25);
+    context.lineTo(150,25);
+    context.lineTo(25,150);
+    context.fill();
+</script>
+
+
+轮廓可以使用
+context.strokeStyle="";
+context.beginPath();
+context.moTo();
+context.lineTo();
+context.lineTo();
+context.closePath();
+context.stroke();
+
+5.5、清除内容
+清除指定区域内的内容（不会删除画布）
+ context.clearRect(0,0,200,300);
+
+5.6、绘制贝塞尔曲线
+<body>
+   <canvas id="myCanvas" width="300" height="200" style="background-color:#fff;border:1px solid"></canvas>
+   <script type="text/javascript">
+       //获取到画布
+      var canvas = document.getElementById("myCanvas");
+       //上下文
+       var context = canvas.getContext("2d");
+       context.strokeStyle="red";
+       context.beginPath();
+       context.moveTo(0,200);
+       //（控制点坐标，终点坐标）
+       //描边
+       context.quadraticCurveTo(75,50,300,200);
+       context.stroke();
+       context.globalCompositieOperation="source-over";
+       //下面绘制的直线用于表示上面曲线的控制点和控制线，控制点坐标即两直线的焦点（75,50）
+       context.strokeStyle="#FF00FF";
+       context.beginPath();
+       context.moveTo(75,50);
+       context.lineTo(0,200);
+       context.moveTo(75,50);
+       context.lineTo(300,200);
+       context.stroke();
+
+   </script>
+</body>
+三角形的顶点即为控制点
+
+6、email类型的应用
+
+	自动验证email合法性
+ 	 <form action="#" method="get">
+   		<input type="email" name="useremail"/>
+
+
+
+7、footer注脚
+	<footer>
+   		<ul>
+        	<li>关于</li>
+        	<li>帮助</li>
+        	<li>等等</li>
+     		</ul>
+	</footer>
+
+
+
+8、hgroup为标题分组
+
+<body>
+   <header>
+       <hgroup>
+          <h1>网页标题主标题</h1>
+          <h2>副标题</h2>
+          <h3>标题说明</h3>
+       </hgroup>
+       <p>
+          <time datetime="2012-06-20">发布时间2012年6月20日</time>
+       </p>
+   </header>
+   <p>新闻正文</p>
+</body>
+
+9、HTML5文档结构
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8/>
+    <title>HTML5结构元素</title>
+    <meta name=description content=文档描述信息>
+    <meta name=author content=文档作者>
+    <meta name=copyright content=版权信息>
+    <meta name=viewport content-width=width,user-scalable=no>
+    <link rel=stylesheet href=main.css>
+    <script src=script.js></script>
+</head>
+<body>
+   <header>HTML5文档的头部区域</header>
+   <nav>HTML5文档的导航区域</nav>
+   <section>HTML5文档的主要内容区域， section为区块
+      <aside>HTML5文档的主要内容区域的侧边导航或菜单区</aside>
+      <article>主要内容区域
+          <section>以下是一个section和aricle的嵌套 文章里的区块分隔
+             <aside></aside>
+              <aiticle>
+                  <header></header>
+                  <footer></footer>
+              </aiticle>
+          </section>
+      </article>
+   </section>
+   <footer>HTML5文档的脚部区域</footer>
+</body>
+</html>
+
+10、HTML5语法
+
+不区分大小写
+<!DOCTYPE html>
+      <html>
+            <head>
+                <meta charset="utf-8"> 定义字符编码
+            </head>
+       </html>
+
+
+11、多文件上传multiple
+	<input type="file" multiple="multiple"/ >
+
+
+12、验证number的有效性
+
+<body>
+  <form action="#" method="get">
+   <input type="number" name="number" min="1" max="20" step="4"有些浏览器对step的支持不好
+           还有value属性设置默认值
+   <input type="submit" value="提交">
+  </form>
+</body>
+
+13、pattern规定正则表达式
+	6位数字
+	<input type="text" pattern="[0-9]{6}"/>
+
+14、placeholder
+	<input placeholder="提示信息"/ > required=“required” 必须填才能提交
+
+15、进度条range
+
+  <form action="#" method="get">
+   <input type="range" name="number" min="1" max="20" step="4"
+
+16、section元素及article元素
+
+	和div对比
+	div关注 结构独立性
+	section 关注内容独立性，内容可以单独存储到数据库中或者传输到word文档
+
+	article 与section对比
+	article 文档页面 独立完整 可以被引用，是独立的
+	section对网站，页面内容进行分块，由内容和标题组成，比如文章分段，没有标题的内容块不要使用section
+
+     如 <article>
+        	<header></header>
+       		<p></p>
+       		<section></section>
+       </article>
+
+17、电话号码 
+	<input type="tel"/>
+
+18、time 
+	<time datetime="2012-05-05" pubdate>2012-05-05</time>
+
+19、url类型应用，url检查合法性
+
+  <form action="#" method="get">
+   <input type="url" name="url"
+
+20、导航nav
+
+	应用-传统的导航
+  	边栏-页面导航
+	不要用menu代替nav
+
+<body>
+   <nav draggable="true">  可拖动
+       <a href="index.html">首页</a>
+       <a href="book.html">图书</a>
+       <a href="bbs.html">论坛</a>
+   </nav>
+</body>
+
+
+21、address元素
+
+<body>
+   <footer>
+       <section>
+           <address>
+               <a href="http://www.w3.org">W3C</a>
+               <a href="http://www.whatwg.org">WHATWG</a>
+           </address>
+           <p>发布于：
+              <time datetime="2012-06-01">2012-06-01</time>
+           </p>
+       </section>
+   </footer>
+</body>
+
+
+22、其他功能
+	var x = document.querySelector(".someClass"); 
+	找到第一个符合条件的元素
+	var x = document.querySelectorAll(".someClass"); 
+	找到所有符合条件的元素
+
+23、全局属性
+
+	contentEditable  内容是否可编辑
+
+	<body>
+  		<ul contentEditable="true">
+     		<li>列表元素1</li>
+     		<li>列表元素2</li>
+     		<li>列表元素3</li>
+  		</ul>
+	</body>
+
+	designMode 设计模式
+     	document.designMode="on"
+	页面是否可编辑，当可编辑时网页中所有 contentEditable="true"，都可编辑
+	但容易带来不安全性
+
+	hidden  true| false
+     	隐藏显示
+
+	spellcheck 用户输入内容进行语法检查
+    	true| false
+	
+	<body>
+	<textarea spellcheck=true></textarea>
+ 	<input type="text" spellcheck=false/>
+	</body>
+
+	tabindex
+  		按tab建所进行的浏览次序
+
+
+
+24、日期使用
+
+<input type="date"/>     日月年
+<input type="month"/>     月、年
+<input type="week"/>      周和年
+<input type="time" />      选取时间（小时分钟） value属性 value=09：00  step属性 step=5
+<input type="datetime"/>    选取时间、日、月、年 UTC时间
+<input type="datetime-local"/>  选取时间、日、月、年
+
+
+25、属性
+
+	表单对象
+	1、autofocus  指定属性的方式，元素在画面打开是自动获取焦点
+	2、placeholder 对用户的输入提示
+	3、form 为表单对象指定表单框
+	4、required 提交时对表单进行检查
+
+input
+	1、autocomplete min max multiple（允许上传多个文件） pattern step
+表单元素
+	list
+	datalist
+
+链接属性
+	media   链接的什么类型
+	area 
+	hreflang
+	rel
+	link
+	sizes 与icon配合使用关联图标
+	base
+	target
+
+
+26、元素
+	1、内嵌元素 audio、 video 、vanvas（画布）、 iframe
+	2、流 form h1 small
+	3、标题 h1 h2 和hgroup
+	4、交互 音视频控件 buton textarea
+	5、元数据 script style title
+	6、短语mark kbd sup sub
+
+结构元素
+	header   标记头部区域的内容，是显示的
+	footer   标记脚部区域的内容，显示相关信息
+	section  web页面的一块区域，一个段落
+	article  独立的文章内容
+	nav      导航类辅助内容
+
+块级元素
+	aside     相关内容或者引文，块级元素
+	code 	  一段代码
+	dialog  dt dd 行
+	meter 特定范围数值
+	time 时间
+	progress 进度 与max min  step audio video等联合使用
+
+交互元素
+	datails 一段具体内容，单可能不显示，通过单机等显示
+	datagrid 控制客户端数据显示
+	menu
+	command
+
+
+
+27、坐标偏移及旋转及缩放
+
+27.1、原点偏移
+<body>
+<canvas id="myCanvas" width="700" height="300" style="background-color:#fff;border:1px solid"></canvas>
+<script type="text/javascript">
+
+    function drawTop(context,fillStyle){
+        context.fillStyle=fillStyle;
+        context.beginPath();
+        //因为原点进行了traslate所以不会再同一个位置画，即左边原点偏移了
+        //画出半圆
+        context.arc(0,0,30,0,Math.PI,true);
+        context.closePath();
+        context.fill();
+    }
+    function drawGrip(context){
+        context.save();
+        context.fillStyle="blue";
+        //画出伞柄（即一个矩形）
+        context.fillRect(-1.5,0,1.5,40);
+        context.beginPath();
+        context.strokeStyle="blue";
+        context.arc(-5,40,4,Math.PI,Math.PI*2,true);
+        context.closePath();
+        context.restore();
+    }
+    function draw(){
+        var canvas = document.getElementById("myCanvas");
+        var context = canvas.getContext("2d");
+        context.translate(80,80);
+        for(var i=1;i<10;i++){
+            //保存默认设置
+            context.save();
+            //改变x轴
+            context.translate(60*i,0);
+            drawTop(context,"rgb("+(30*i)+","+(255-30*i)+",255)");
+            drawGrip(context);
+
+        }
+    }
+    window.onload=function(){
+        draw();
+    }
+
+</script>
+</body>
+
+
+27.2、旋转
+rotate()方法 ，以弧度为单位
+
+<body>
+<canvas id="myCanvas" width="700" height="300" style="background-color:#fff;border:1px solid"></canvas>
+<script type="text/javascript">
+
+    function drawTop(context,fillStyle){
+        context.fillStyle=fillStyle;
+        context.beginPath();
+        //因为原点进行了traslate所以不会再同一个位置画，即左边原点偏移了
+        //画出半圆
+        context.arc(0,0,30,0,Math.PI,true);
+        context.closePath();
+        context.fill();
+    }
+    function drawGrip(context){
+        context.save();
+        context.fillStyle="blue";
+        //画出伞柄（即一个矩形）
+        context.fillRect(-1.5,0,1.5,40);
+        context.beginPath();
+        context.strokeStyle="blue";
+        context.arc(-5,40,4,Math.PI,Math.PI*2,true);
+        context.closePath();
+        context.restore();
+    }
+    function draw(){
+        var canvas = document.getElementById("myCanvas");
+        var context = canvas.getContext("2d");
+        context.translate(150,150);
+        for(var i=1;i<10;i++){
+            //保存默认设置
+            context.save();
+               //坐标轴每次旋转pi/4
+            context.rotate(Math.PI*(2/4+i/4));
+            //为了不让图形原点重合，每次坐标轴旋转后，y轴向上移动100（旋转后自己y轴的方向），即-100
+            context.translate(0,-100);
+            drawTop(context,"rgb("+(30*i)+","+(255-30*i)+",255)");
+            drawGrip(context);
+            context.restore();
+
+        }
+    }
+    window.onload=function(){
+        draw();
+    }
+
+</script>
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+

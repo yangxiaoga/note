@@ -1,0 +1,43 @@
+
+	NGINX
+
+用户 - 负载均衡服务器 - Weserver1,Webserver2，...Webservern.
+
+实现
+	硬件 F5 NetScala
+	软件 lvs haproxy nginx
+        nginx nginx.org
+	haproxy haproxy.org
+
+开发
+	面向服务开发
+                          		   	购物车的tomcat
+
+ 		tomcat 接收请求 （转发）  	用户管理的tomcat
+
+                          			目录的tomcat
+
+        单个tomcat600人就已经出现问题了
+        若果是nginx,5万，经过封装轻松上10万
+
+        
+反向代理
+
+	相比于静态页面,找了一个东西通过Socket帮你访问一个东西
+
+ 	代理了后端的Server和客户端的通信
+
+
+Nginx 	可以在基于反向代理的同时，扩展了负载均衡的能力
+
+	简历握手连接 - 接收请求，分析uri - 等待后端的请求 - 反向代理
+	
+
+	保证每个用户都能连接上：nginx前加lvs,后多个nginx
+
+
+
+
+
+
+	                          

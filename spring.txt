@@ -1,0 +1,135 @@
+
+       Spring 概述
+
+     Spring是轻量级的Java开发框架，目的是为了解决企业级应用开发的
+业务逻辑层和其他各层的耦合问题，它是一个分层的JAVASE/JAVAEE 一站式轻量级的开源框架
+为Java应用程序提供全面的基础架构支持，Spring负责基础架构，因此Java
+开发者可以专注于应用程序的开发
+
+【核心特性】
+    依赖注入(dependency injection DI)、面向切面编程(aspect-oriented programming AOP)
+
+【关键策略】
+    基于Pojo的轻量级和最小侵入性编程
+    通过依赖注入和面向接口实现松耦合
+    基于切面和惯例进行声明式编程
+    通过切面和模板减少岩板代码
+
+【作用】Ioc让相互协作的组件保持松散的耦合
+        而AOP编程允许你把遍布于应用各层的功能分离出来形成可重用的功能组件
+
+【优缺点】    
+
+   Spring IOC容器惯例对象
+   AOP编程，实现对程序进行权限拦截，运行监控
+   声明式事务的支持
+   方便的测试
+   便于集成优秀的框架Struts，Hibernate，mybatis
+   对JAVAEE开发中非常难用的API进行了封装
+
+
+   缺点：大而全，反射影响性能
+
+【应用场景】
+    JavaEE企业应用开发，包括SSH,SSM
+    
+      
+【模块】
+    JDBC、ORM、OXM、JMS TRANSACTIONS、WEBSOCKET SERVLET WEB PORTLET
+
+    AOP  ASPECT   INSTRUMENTATION   MESSAGING
+
+    BEANS CORE CONTEXT SPEL
+
+    spring core:提供框架的基本组成部分，包括控制反转IOC和依赖注入
+    spring beans:提供BeanFactory,是工厂模式的一个经典实现，Spring将管理对象称为bean
+    spring context:构建于core封装包基础之上的context包，提供一种框架式的对象访问方法
+                   使得spring成为一个容器
+    spring jdbc:提供了一个jdbc的抽象层，消除了繁琐的JDBC编码和数据库厂商特有的错误代码解析
+    spring aop:提供了面向切面的编程实现，让你可以自定义拦截器，切点
+    spring web:提供针对web开发的继承特性，例如文件上传，servlet listener进行IOCr容器初始化
+               和针对Web的ApplicationContext
+
+    spring test:主要为测试提供支持的，支持使用Junit,或TestNG对spring组件进行单元测试和集成测试
+
+
+【使用模式】
+	工厂模式：BeanFactory就是简单工厂模式的体现，用来创建对象的实例
+        单例模式：Bean默认为单例
+        代理模式：Spring AOP用到了JDK的动态代理和CGLIB字节码生成技术
+        模板方法：用来解决代码重复的问题，如RestTemplate
+        观察者模式：如spring listener的实现ApplicationListener
+
+
+【容器】
+    BeanFactory:是spring最底层的接口，包含了各种bean的定义
+读取bean配置文档，管理bean的加载，实例化，控制bean的生命周期，维护bean之间的依赖关系
+延迟加载
+
+
+    ApplicationContext接口作为BeanFactory的派生，除了提供BeanFactory所有的功能外，还提供更为完整的框架功能
+继承MessageSource，因此支持国际化
+统一的资源文件访问方式
+提供在监听器中注册bean的时间
+同时加载多个配置文件
+载入多个（有继承关系）上下文，使得每一个上下文都更专注于一个特定的层次，比如应用的web层
+一次性创建所有Bean
+
+【容器的实现】
+    BeanFactory:两个HashMap,Key是BeanName,Value是Bean实例，通常只提供put和get,称为低级容器
+ApplicationContext:高级容器，refresh方法，用来刷新整个容器
+ClassPathXmlApplicationContext
+
+
+【低级容器的作用】
+    加载配置文件，解析成BeanDefinition放在Map里
+    在掉用getBean的时候，从BeanDefinition所属的Map里，拿出CLas对象进行实例化
+    同时如果有依赖关系，将递归调用getBean方法，完成依赖注入
+
+【ApplicationContext通常的实现是什么】
+FileSystemXmlApplicationContext:从一个XML文件加载bean的定义，XML bean配置文件的全路径名必须提供
+给它的构造函数
+
+ClassPathXmlApplicationContext:从一个XML文件加载bean的定义,在classpath里找bean配置
+
+WebXmlApplicationContext:此容器加载一个XML文件，此文件定义了一个WEB应用的所有bean
+
+【单例bean是线程安全的吗】
+不是，并没有对单例bean进行多线程的封装处理
+有状态就是有数据存储功能
+
+
+
+【bean生命周期】
+实例化-填充属性-调用BeanNameAware 的setBeanName方法
+调用BeanFactoryAware的setBeanFactory方法
+调用ApplicationContextAware的setApplicationContext方法
+调用BeanPostProcessor的预初始化方法
+调用InitializingBean的afterPropertiesSet方法
+调用自定义的初始化方法
+调用BeanPostProcessor的初始化后方法
+bean可以使用了
+容器关闭
+
+DisposableBean的destroy方法
+调用自定义的销毁方法
+
+
+【@Autowired 和@Resource之间的区别】
+@Autowired 用于构造函数,成员变量，setter方法，按照类型注入
+@Resource按照名称类装配注入，只有找不到与名称匹配的bean才会按照类型来装配注入
+
+@Qualifier与@Autowired搭配使用
+
+
+
+
+
+
+
+           
+
+
+
+
+

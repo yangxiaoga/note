@@ -1,0 +1,116 @@
+	
+		MySQL
+
+1、mysql初识
+
+	提供多线程，多用户，牢靠的SQL数据库服务器
+
+	mysql的主要特性：
+
+		能够工作在不用的平台上
+		提供java python c c++等api
+		提供事务性和非事务性存储引擎
+		使用B树磁盘表和索引压缩
+		基于线程的内存分配系统
+2、创建新用户
+
+	超级用户账户，具有完全的权限做任何事情，只用于从主机进行连接
+	Grant all privileges on *.* to 'monty'@'localhost' identified by 'some_pass' with grant option
+
+	超级用户账户，具有完全的权限做任何事情，可用于从其他主机进行连接
+	Grant all privileges on *.* to 'monty'@'%'identified by 'some_pass' with grant option
+
+	没有密码，只用于从本机连接，允许用户执行mysqladmin relaod mysqladmin refresh 和mysqladmin flush -xxx命令
+	以及mysqladmin processlist未授予访问数据库 的权限
+	grant reload,process on *.* to 'admin' @'localhost'
+	grant usage on *.* to 'dummy'@'localhost'
+
+	或者使用insert语句创建相同的账户 使用flush privileges告诉服务器重载授权表
+	insert into user values('localhost','monty',PASSWORD('some_pass'),'Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','Y')
+	>>flush privileges
+	user表里有很多字段
+
+	Host User Passord Select_priv Insert_priv Update_priv Delete_priv Create_priv
+	Drop_priv Reload_priv Shutdown_priv Process_priv File_priv Grant_priv Index_priv max_connections
+
+3、Null 
+	用IS NULL、IS NOT NULL 来判断是否为空
+	如select 1 is null;则输出结果为0
+	注意：在group by'的时候两个null值视为相同
+
+4、mysql备份与还原
+
+	备份
+	mysqldump基本语法
+	mysqldump -u username -p dbname table1 table2...>BackupName.sql
+
+	dbname 是数据库的名称
+	table1 table2参数表示需要备份的表的名称 为空则整个数据库备份
+
+	BackupName.sql参数表示备份文件的名称文件名前面可以加上一个绝对路径
+
+	如 mysql -u root -p test person >D:\backup.sql
+
+
+	备份多个数据库
+	myslq -u root -p --databases test mysql >D:\backup.sql
+
+	备份所有数据库
+	mysql -u root -p -all-databases > backup.sql
+
+
+	还原
+	mysql -u root -p<d:\backup.sql
+	mysql -uroot -proot [dbname] < backup.sql
+
+
+5、   连接服务器
+	host需要换成相应的ip
+	shell脚本
+	mysql -h host -u user -p
+	Enter password ：********
+
+6、命令
+	启动mysql
+	window 命令行 进入到bin目录
+	C：\> C:\Program Files\MySQL\MySQL Server 5.0\bin\mysqld   
+	停止mysql服务器
+	C：\> C:\Program Files\MySQL\MySQL Server 5.0\bin\mysqladmin -u root shutdown
+
+
+7、模式匹配
+	利用like操作符% :匹配任意个字符;_:匹配单个字符
+
+8、日期
+	Year提取日期的年部分
+	在当前的月份下再加一个月
+		SELECT name, birth FROM pet
+		WHERE MONTH(birth) = MONTH(DATE_ADD(CURDATE(),INTERVAL 1 MONTH));
+
+9、数据导入导出
+
+	经数据从文件导入数据库表（用tab把值分开）
+	Load data infile 'c:/tmp/skr.txt' into table skr;
+
+	将数据库中的内容导出到文件
+	select * into outfile 'd:/temp.txt' from user;
+
+	设置密码：
+	shell> mysql -u root
+	PASSWORD函数用来加密密码
+	mysql> SET PASSWORD FOR ''@'localhost' = PASSWORD('newpwd');  
+	mysql> SET PASSWORD FOR ''@'%' = PASSWORD('newpwd');
+
+10、查询
+
+	查询系统函数及变量
+
+	查询版本及当前日期
+	select version(),current_date;
+	一些函数如 
+	sin(pi()/2)
+	pi()   //圆周率
+	now（）当前时间
+	不执行当前命令 \c
+	查询用户
+
