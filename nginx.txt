@@ -1,43 +1,580 @@
-
-	NGINX
-
-�û� - ���ؾ�������� - Weserver1,Webserver2��...Webservern.
-
-ʵ��
-	Ӳ�� F5 NetScala
-	���� lvs haproxy nginx
-        nginx nginx.org
-	haproxy haproxy.org
-
-����
-	������񿪷�
-                          		   	���ﳵ��tomcat
-
- 		tomcat �������� ��ת����  	�û�������tomcat
-
-                          			Ŀ¼��tomcat
-
-        ����tomcat600�˾��Ѿ�����������
-        ������nginx,5�򣬾�����װ������10��
-
-        
-�������
-
-	����ھ�̬ҳ��,����һ������ͨ��Socket�������һ������
-
- 	�����˺�˵�Server�Ϳͻ��˵�ͨ��
+﻿
+			Nginx
 
 
-Nginx 	�����ڻ��ڷ��������ͬʱ����չ�˸��ؾ��������
+1、Nginx简介
 
-	������������ - �������󣬷���uri - �ȴ���˵����� - �������
+	Ningx是一款轻量级的Web服务器/反向代理服务器及电子邮件(IMAP/POP3)
+	代理服务器，并在一个BSD-like协议下发型，由俄罗斯的程序设计师IgorSysoev
+	所开发，供俄国大型的入口网站及搜索引擎Rambler使用
+
+	其特点是占有内存少，并发能力强，事实上的nginx的并发能力确实在同类型的
+	网页服务器中表现较好，中国使用nginx网站有百度，新浪，网易，腾讯等
+
+2、负载均衡策略
+
+	硬件：F5，Array等负载均衡
+	软件
+		阿里SLB
+		Nginx+Keepalived
+                其他负载均衡LVS(Linux Virtual Server),haproxy 等技术
+
+3、Nginx优点
+	可以在大多数Unix like OS上编译运行，并有Windows移植版
+	强大的高性能Web和反向代理服务器
+	高并发下，是Apache服务器不错的替代品
+
+4、安装
+	依赖
+	yum install pcre, pcre-devel, zlib, zlib-devel
+	解压nginx-1.6.2.tar.gz
+        运行configure配置：cd nginx-1.6.2 &&./configure --prefix=/usr/local/nginx
+	编译安装
+		make && make install
+	启动nginx
+		cd /usr/local/nginx
+			conf配置文件
+			html网页文件
+			logs日志文件
+			sbin二进制程序
+	启动命令 /usr/local/nginx/sbin/nginx 关闭-s stop 重启 -s reload
+        查看 netstae -ano|grep 80
+	浏览 http://ip:80 -> Welcome to nginx
+
+5、Nginx虚拟主机配置
+
+        key [空格] value;
+
+	location / { 在根下找 
+            root   html;
+            index  index.html index.htm;
+        }
+
+	自添加server:
+	server{
+
+		listen 1234;
+		server_name bhz;
+		location / {
+ 			root bhz;
+			index index.html;
+
+
+                }
+
+        }
+
+6、日志文件
+	nginx.pid nginx启动，会产生一个进程，记录在日志中
+	access.log 访问日志
+
+	server{
+
+		listen 1234;
+		server_name bhz;
+		location / {
+ 			root bhz;
+			index index.html;
+
+                }
+		access_log logs/bhz.access.log main //main为全局的一种日志记录格式
+
+        }
+
+    main的定义：
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+7、日志切分
+
+	用于分析
+	shell脚本:bak_log.sh
+
+	` //键盘1前的`,做赋值操作使用;echo $BAK_FILE//输出备份文件路径
+	
+	#!/bin/bash
+	BASE_DIR=/usr/local/nginx
+	BASE_FILE_NAME=error.log
+
+	CURRENT_PATH=$BASE_DIR/logs
+	BAK_PATH=$BASE_DIR/datalogs
+
+	CURRENT_FILE=$CURRENT_PATH/$BASE_FILE_NAME
+	BAK_TIME=`/bin/date -d yesterday +%Y%m%d%H%M`
+	BAK_FILE=$BAK_PATH/$BAK_TIME-$BASE_FILE_NAME
+
+	echo $BAK_FILE
+
+	cd $BASE_DIR/sbin/
+	./nginx -s stop
+	mv $CURRENT_FILE $BAK_FILE
+	
+	赋权
+	chomd 755 bak_log.sh
+
+	crontab -e 
+
+	*/1 * * * * sh  /usr/local/nginx/sbin/bak_log.sh
+
+8、定时任务时间配置项
+
+f1 f2 f3 f4 f5 program
+其中 f1 是表示分钟，f2 表示小时，f3 表示一个月份中的第几日，f4 表示月份，f5 表示一个星期中的第几天。program 表示要执行的程序。
+
+当 f1 为 * 时表示每分钟都要执行 program，f2 为 * 时表示每小时都要执行程序，其馀类推
+当 f1 为 a-b 时表示从第 a 分钟到第 b 分钟这段时间内要执行，f2 为 a-b 时表示从第 a 到第 b 小时都要执行，其馀类推
+当 f1 为 */n 时表示每 n 分钟个时间间隔执行一次，f2 为 */n 表示每 n 小时个时间间隔执行一次，其馀类推
+当 f1 为 a, b, c,... 时表示第 a, b, c,... 分钟要执行，f2 为 a, b, c,... 时表示第 a, b, c...个小时要执行，其馀类推
+
+*    *    *    *    *
+-    -    -    -    -
+|    |    |    |    |
+|    |    |    |    +----- 星期中星期几 (0 - 7) (星期天 为0)
+|    |    |    +---------- 月份 (1 - 12) 
+|    |    +--------------- 一个月中的第几天 (1 - 31)
+|    +-------------------- 小时 (0 - 23)
++------------------------- 分钟 (0 - 59)
+
+	
+调试脚本的方式 sh -x xx.sh 
+
+9、Nginx location
+	
+	location=pattern{}精准匹配
+	location pattern{}一般匹配
+
+	location ~ pattern{}正则匹配
+
+	nginx可对数据进行压缩，对一些图片，html,css,js等文件进行缓存
+	从而实现动静分离等等优化功能
+
+
+10、nginx.conf 配置文件配置项
+
+#user  nobody;
+
+
+#开启进程数 <=CPU数 
+
+worker_processes  1;
+
+
+
+#错误日志保存位置
+
+#error_log  logs/error.log;
+
+#error_log  logs/error.log  notice;
+
+#error_log  logs/error.log  info;
+
+
+
+#进程号保存文件
+#pid        logs/nginx.pid;
+
+
+
+#每个进程最大连接数（最大连接=连接数x进程数）每个worker允许同时产生多少个链接，默认1024
+
+events {
+    
+	worker_connections  1024;
+
+}
+
+
+
+
+http {
 	
 
-	��֤ÿ���û����������ϣ�nginxǰ��lvs,����nginx
+#文件扩展名与文件类型映射表
+    
+include       mime.types;
+
+	
+#默认文件类型
+    
+default_type  application/octet-stream;
+
+	
+
+#日志文件输出格式 这个位置相于全局设置
+    
+log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      
+                  '$status $body_bytes_sent "$http_referer" '
+                      
+		  '"$http_user_agent" "$http_x_forwarded_for"';
+
+
+	
+#请求日志保存位置
+    	#access_log  logs/access.log  main;
+	
+	
+#打开发送文件
+    	sendfile        on;
+    
+#tcp_nopush     	on;
+
+    
+#keepalive_timeout  	0;
+	
+#连接超时时间
+    	keepalive_timeout  65;
+
+	
+#打开gzip压缩
+    
+#gzip  on;
+	
+	
+#设定请求缓冲
+	
+#client_header_buffer_size 	1k;
+	
+#large_client_header_buffers 	4 4k;
+	
+
+	
+#设定负载均衡的服务器列表
+	
+#upstream myproject {
+		
+	#weigth参数表示权值，权值越高被分配到的几率越大
+		
+	#max_fails 当有#max_fails个请求失败，就表示后端的服务器不可用，默认为1，将其设置为0可以关闭检查
+		
+	#fail_timeout 在以后的#fail_timeout时间内nginx不会再把请求发往已检查出标记为不可用的服务器
+	
+#}
+
+	
+   
+#webapp
+    
+#upstream myapp {   
+  	
+	# server 192.168.1.171:8080 weight=1 max_fails=2 fail_timeout=30s;   
+	
+	# server 192.168.1.172:8080 weight=1 max_fails=2 fail_timeout=30s;   
+    
+#} 
+
+	
+
+#配置虚拟主机，基于域名、ip和端口
+    
+server {
+		
+#监听端口
+        listen       80;
+		
+#监听域名
+        server_name  localhost;
+
+        
+#charset koi8-r;
+		
+		
+#nginx访问日志放在logs/host.access.log下，并且使用main格式（还可以自定义格式）
+       
+#access_log  logs/host.access.log  main;
+
+		
+#返回的相应文件地址
+        
+location / {
+           
+	#设置客户端真实ip地址
+            
+	#proxy_set_header X-real-ip $remote_addr;		
+			
+	#负载均衡反向代理
+			
+	#proxy_pass http://myapp;
+			
+			
+	#返回根路径地址（相对路径:相对于/usr/local/nginx/）
+            
+	root   html;
+			
+	#默认访问文件
+            
+	index  index.html index.htm;
+        
+}
 
 
 
 
+		
+#配置反向代理tomcat服务器：拦截.jsp结尾的请求转向到tomcat
+    
+    
+#location ~ \.jsp$ {
+        
+#    proxy_pass http://192.168.1.171:8080;
+        
+#}
 
+		
+		
+        
+#error_page  404              /404.html;
+       
+# redirect server error pages to the static page /50x.html
+       
+#
+		
+		
+#错误页面及其返回地址
+        
+error_page   500 502 503 504  /50x.html;
+        
+location = /50x.html {
+            root   html;
+        }
+
+       
+# proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        
+#
+        
+#location ~ \.php$ {
+        
+#    proxy_pass   http://127.0.0.1;
+        
+#}
+
+        
+# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        
+#
+        
+#location ~ \.php$ {
+        
+#    root           html;
+        
+#    fastcgi_pass   127.0.0.1:9000;
+       
+#    fastcgi_index  index.php;
+       
+#    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+        
+#    include        fastcgi_params;
+        
+#}
+
+        
+# deny access to .htaccess files, if Apache's document root
+        
+# concurs with nginx's one
+       
+#
+        
+#location ~ /\.ht {
+        
+#    deny  all;
+        
+#}
+    }
+	
+	
+#虚拟主机配置：
+	
+server {
+		
+	listen 1234;
+		
+	server_name bhz.com;
+		
+	location / {
+		
+	#正则表达式匹配uri方式：在/usr/local/nginx/bhz下 建立一个test123.html 然后使用正则匹配
+	
+	
+        #注意，if和（之间需要有空格，=和两边的数或者变量间有空格
+	# ~* 指的是忽略大小写
+	#IP为192.168.1.200的机器，访问时会出现：401 Authorization Required
+
+	#location ~ test {
+			
+		## 重写语法：if return （条件 = ~ ~*）
+			
+		#if ($remote_addr = 192.168.1.200) {
+			
+		#       return 401;
+			
+		#}		
+			
+			
+		#
+		if ($http_user_agent ~* firefox) {
+			
+		#	   rewrite ^.*$ /firefox.html;
+			
+		#	   break;
+			
+		#}			
+						
+			
+		root bhz;
+			
+		index index.html;
+		
+	}
+		
+		
+	#location /goods {
+
+	#               满足前缀goods[0-9999].html，则重定向到指定的location		
+	#		rewrite "goods-(\d{1,5})\.html" /goods-ctrl.html;
+		
+	#		root bhz.com;
+		
+	#		index index.html;
+		
+	#}
+
+		
+		
+	#配置访问日志
+		
+	access_log logs/bhz.com.access.log main;
+	
+}
+	
+
+
+    
+# another virtual host using mix of IP-, name-, and port-based configuration
+    
+#
+    
+#server {
+    
+#    listen       8000;
+    
+#    listen       somename:8080;
+    
+#    server_name  somename  alias  another.alias;
+
+    
+#    location / {
+    
+#        root   html;
+    
+#        index  index.html index.htm;
+    
+#    }
+    
+#}
+
+
+    
+# HTTPS server
+    
+#
+    #server {
+    
+#    listen       443 ssl;
+   
+#    server_name  localhost;
+
+    
+#    ssl_certificate      cert.pem;
+   
+#    ssl_certificate_key  cert.key;
+
+    
+#    ssl_session_cache    shared:SSL:1m;
+    
+#    ssl_session_timeout  5m;
+
+    
+#    ssl_ciphers  HIGH:!aNULL:!MD5;
+    
+#    ssl_prefer_server_ciphers  on;
+
+    
+#    location / {
+   
+#        root   html;
+    
+#        index  index.html index.htm;
+    
+#    }
+    
+#}
+
+
+}
+
+
+11、反向代理
+
+	11.1 Nginx反向代理proxy
+	客户 - > Nginx 代理 -> Tomcat,Apache
+
+	11.2 配置反向代理
+	proxy_pass url地址
+
+	11.3 配置实例
+	#配置反向代理tomcat服务器：拦截 .jsp结尾的请求转向到tomcat
+    
+        #\.是转义，$表示结尾
+
+	location ~ \.jsp$ {
+  
+             proxy_set_header X-real-ip $remote_addr;      
+	     proxy_pass http://192.168.1.171:8080;
+        
+	}
+
+	
+	11.4 注意：反向代理之后获取客户端IP地址为nginx服务器地址，这里需要
+	nginx进行forward,设置真实的ip地址
+	JSP获取真实IP: request.getHeader("X-real-ip")
+
+12、配置负载均衡upstream
+
+	12.1配置项
+
+	负载均衡的配置跟Server平级
+	upstream [project] {
+		
+		#weigth参数表示权值，权值越高被分配到的几率越大
+		
+		#max_fails 当有#max_fails个请求失败，就表示后端的服务器不可用，默认为1，将其设置为0可以关闭检查
+		
+		#fail_timeout 在以后的#fail_timeout时间内nginx不会再把请求发往已检查出标记为不可用的服务器
+	
+	}
+
+
+	12.2实例
+	upstream myapp {
+		server 192.168.1.171:8080 weight=1 max_fails=2 fail_timeout=30s;   #各一半的权重
+	
+		server 192.168.1.172:8080 weight=1 max_fails=2 fail_timeout=30s;   
+    
+	} 
+
+
+	
+	location / {
+  
+             proxy_set_header X-real-ip $remote_addr;      
+	     proxy_pass http://myapp;
+        
+	}
+	
+	相当于客户在访问nginx的80端口时，nginx对请求代理做了对不同server的均衡分发
+	
 
 	                          
