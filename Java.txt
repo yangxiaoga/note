@@ -208,7 +208,7 @@
 
     long类型数和日期的转化
 
-    实现类：GregorianCalendar日历，月份从0开始：一月是0，二月是1，,1月是11
+    实现类：GregorianCalendar日历，月份从0开始：一月是0，二月是1，,12月是11
                                    周日是1...周六是7
     Calendar c = new GregorianCalendar();
     c.set(2001,1,10,12,23,34);
@@ -238,7 +238,7 @@
 9、变量
 
  Java是一种强类型语言，每个变量必须声明去类型
- Java比那粮食程序中最基本的存储单元 ，其要素包含变量名，变量类型和作用域
+ Java变量是程序中最基本的存储单元 ，其要素包含变量名，变量类型和作用域
 
  变量：成员变量（类成员）、局部变量（方法成员）
 
@@ -251,7 +251,20 @@
 instanceof 是否是一个类的实例
 条件运算符:  ? :
 
-~ : 取反，如~8，即8的补码为01000，取反后为10111，则原码为11000+1 = 11001，即-9
+~ : 取反，如~9
+    
+    	二进制数在内存中的存放形式，二进制数在内存中是以补码的形式存放的
+
+	正数
+    	正数的补吗，反码都是其自身，如 9:01001，补码 01001，反码 01001
+
+    	负数
+	-1，内存中存储为10001，开头的1位符号位，在内存中存放为11111，符号位不变，逐位取反，末位加1
+	即反码为11110，补码为1111
+
+	怎样计算 ~9呢？
+	9的二进制位1001，补码为01001，通过 ~ 对其取反10110，现在需要换成二进制原码来输出，
+	逐位取反11001，末位加1，11010，即-10
 
 & : 按位与，如4:0100,8:1000，按位与为0
 
@@ -281,16 +294,15 @@ instanceof 是否是一个类的实例
      
 14、API
     常用的java注释标签
-    @Author 坐着
-    @Version 版本
+    @author 作者
     @param 参数
     @return 返回值的含义
-    @throws 抛出异常面熟
-    @deprecated 废弃
+    @throws 抛出异常
+    @Deprecated 废弃
 
 15、键盘输入
 
-    Scanner类 构造器 new Scanner(System.in)
+    Scanner类 构造器 new Scanner(System.in) //in是InputStream的实例
     调用next()方法，程序运行时会阻塞，等待键盘的输入
 
 
@@ -356,7 +368,7 @@ instanceof 是否是一个类的实例
             super是直接父类对象的引用，可以通过super来访问父类中被子类覆盖的方法或者属性
             在普通方法中没有顺序限制，可以随便调用
       
-            在构造函数中，任何类的构造函数中，弱势构造函数的第一行代码没有显示调用super
+            在构造函数中，任何类的构造函数中，若是构造函数的第一行代码没有显示调用super
             Java默认都会调用super，作为父类的初始化函数
     
 
@@ -453,6 +465,7 @@ instanceof 是否是一个类的实例
 
           IdentifyHashMap<String,String> map = new IdentifyHashMap<String,String>（）；
           只比较地址，如果地址不同，才视为key不同
+          IdentifyHashMap判断k1和k2相等的条件是(k1==k2)
 
           EnumMap 键只能为枚举的值
 
@@ -465,7 +478,7 @@ instanceof 是否是一个类的实例
 垃圾回收器将负责回收所有不可达对象的内存空间
 程序员无权调用垃圾回收器
 程序员可以通过System.gc(),通知GC运行，但是Java规范并不能保证立刻运行
-finalize方法是Java提供给程序员用来释放对象或资源的方法，但是尽量用
+finalize方法是Java提供给程序员用来释放对象或资源的方法，但是尽量避免使用
 
 18、构造方法
 构造器用于构造这个类的示例
@@ -517,8 +530,6 @@ finalize方法是Java提供给程序员用来释放对象或资源的方法，但是尽量用
                    toString()数组元素输出
                    冒泡排序：依次比较，最终将最大的冒出来，交换算法
                    
-
-
 23、字符串String
     Java字符串就是Unicode字符序列
     存储 final char[] value
@@ -659,8 +670,8 @@ public static void printFile(File file, int level) {
             E set(int index, E element) 返回值是旧的值，如果为空列表，则会抛出IndexOutOfBoundsException异常
             E remove(int index) 返回被删除的值
 
-            ArrayList底层实现是数组，便于查找，修改，插入，删除慢，线程不安全
-            LinkedList底层实现是链表，查找慢，便于修改，插入，删除，线程不安全
+            ArrayList底层实现是数组，便于查找；修改，插入，删除慢，线程不安全
+            LinkedList底层实现是链表，查找慢；便于修改，插入，删除，线程不安全
             Vector顶层实现是数组，并且是线程安全的，效率低
             
         ArrayList 数组的实现
@@ -715,7 +726,6 @@ public static void printFile(File file, int level) {
            第二：前面没有 “   / ” 
 
            代表当前类的目录 
-
 
 
       【5】Set集合
@@ -1387,14 +1397,19 @@ class Race implements Callable<Integer> {
  【7】阻塞 
 
   join 合并线程，t.join();
+  正常情况下主线程先执行完，但是加入join后，main主线程会等待子线程执行完毕后才执行
+
+  join底层是wait方法，所以它是会释放对象锁的，而sleep在同步的方法中是不释放对象锁的，
+  只有同步方法执行完毕，其他线程才可以执行
 
   yield 暂停当前正在执行的线程对象，并执行其他线程
   Thread.yield();在谁的线程体中，就暂停谁
+  向调度程器发起一个示意,表明当前线程乐意去放弃当前使用的处理器.调度器可以忽略这一提示.
   
   sleep:暂停当前线程，休眠时，不会释放锁
 
         应用在和时间相关的，比间隔多长时间，打印一次，
-              模拟网络延时
+        模拟网络延时
 
   
   【8】方法
