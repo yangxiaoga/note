@@ -36,8 +36,16 @@
 					Monitor
 
 
-		服务提供者在启动时，向注册中心注册自己提供的服务
-		服务消费者在启动时，向注册中心订阅自己所需的服务
+		Provider:暴露服务的服务提供方
+		Consumer:调用远程服务的服务消费方
+		Redistry:服务注册与发现的注册中心
+		Monitor:统计服务的调用次数和调用时间的监控中心
+		Container:服务运行容器
+
+
+		服务 提供者在启动时，向注册中心注册自己提供的服务
+		服务 消费者在启动时，向注册中心订阅自己所需的服务
+
 		注册中心返回服务提供者地址列表给消费者，如果有变更，注册中心将基于长连接推送变更数据
 		给消费者
 		服务消费者，从提供者地址列表中，基于软负载均衡算法，选一台提供者进行调用，如果调用失败
@@ -56,8 +64,20 @@
 		Controller
 		-------------> War
 	
+	2、Dubbo用途
+		
+		透明化的远程方法调用，就像调用本地方法一样调用远程方法，只需简单配置，没有任何API侵入
 
-	2、什么是Dubbox
+		软件负载均衡及容错机制，可以在内网替代F5等硬件负载均衡，降低成本，减少单点
+
+		服务自动注册与发现，不再需要写死服务提供方地址，注册中心基于接口名查询服务提供者的IP地址，
+		并且能够平滑添加或删除服务提供者
+
+		Dubbo采用全Spring配置方式，透明化接入应用，对应用没有任何API侵入只需用Spring记载Dubbo配置
+		即可，Dubbo基于SpringSchema扩展进行加载
+
+
+	3、什么是Dubbox
 
 	    	当当网根据自身的需求，为Dubbo实现了一些新的功能并将其命名为
             	Dubbox（Dubbo extensions）
@@ -81,4 +101,186 @@
                         实现完全无xml的纯java代码方式配置dubbo
 
 		
+	4、Zookeeper至少三个节点
+
+		环境变量
+		export ZOOKEEPER_HOME=/usr/local/zookeeper
+		.:$ZOOKEEPER_HOME/bin:$PATH
+
+
+		修改配置文件
+		conf/
+		vim zoo.cfg
+		dataDir=/usr/local/zookeeper/data	
+	
+		#三个节点
+		server.0=192.168.1.121:2888:3888
+		server.1=192.168.1.122:2888:3888
+		server.2=192.168.1.123:2888:3888
 		
+		#三个节点建立文件myid：
+	
+		cd data
+		touch myid
+			0
+		cd data
+		touch myid 
+			1
+		cd data
+		touch myid 
+			2
+
+
+		启动
+		zkServer.sh start
+		
+		查看状态
+		zkServer.sh status
+
+		进入客户端
+		zkCli.sh 
+
+		服务的配置
+		主节点+备用节点
+		<dubbo:registry address="zookeeper://192.168.1.121:2181?backup=192.168.1.122:2181,192.168.1.123:2181">
+		---------------------------------------------------------------------------------
+		Dubbo管控台部署使用
+
+		dubbo-admin
+		上传tomcat
+		修改dubbo.properties
+			dubbo.registry.address=zookeeper://192.168.1.121:2181?backup=192.168.1.122:2181,192.168.1.123:2181
+			dubbo.admin.root.password=root
+			dubbo.admin.guest.password=root
+
+		访问：
+		http://192.168.1.121:880/dubbo-admin
+		
+		root:root
+
+		--------------------------------------------------------------------
+
+		引用Service
+    		<!-- 生成远程服务代理，可以和本地bean一样使用demoService ,check：是否检查依赖的服务是否可用-->
+    		<dubbo:reference id="demoService" check="true"
+    		interface="com.ethan.provider.service.Service" />
+
+
+		<!-- 声明需要暴露的服务接口 -->
+    		<dubbo:service interface="com.ethan.provider.service.Service" ref="demoService" />
+ 		<bean id="demoService" class="com.ethan.provider.service.ServiceImpl" />
+
+	
+	5、容错配置
+		
+				
+		重试次数
+		<dubbo:service retries="2"/>
+		<dubbo:reference retries="2"/>
+		<dubbo:reference retries="2"/>
+			<dubbo:method name="findFoo" retries="2"/>
+		</dubbo:reference>
+
+	6、负载均衡	
+		
+
+		RandomLoadBalance 是加权随机算法的具体实现，它的算法思想很简单。假设我们有一组服务器 
+		servers = [A, B, C]，他们对应的权重为 weights = [5, 3, 2]，权重总和为10。
+		现在把这些权重值平铺在一维坐标值上，[0, 5) 区间属于服务器 A，[5, 8) 区间
+		属于服务器 B，[8, 10) 区间属于服务器 C。接下来通过随机数生成器生成一个范
+		围在 [0, 10) 之间的随机数，然后计算这个随机数会落到哪个区间上。比如数字3
+		会落到服务器 A 对应的区间上，此时返回服务器 A 即可
+		
+		缺省为random随机调用
+		roundrobin 轮询
+		LeastActiveLoadBalance 翻译过来是最小活跃数负载均衡。活跃调用数越小，表明该
+		服务提供者效率越高，单位时间内可处理更多的请求
+		
+		<dubbo:service interface="..." loadbalance="roundrobin"/>
+
+		
+	7、线程模型
+
+
+		
+		ThreadPool
+			fix 固定大小的线程池，默认	
+			cached 缓存线程池，空闲一分钟自动删除，需要时重建
+			limited 可伸缩线程池，池中的线程只会增长，不会收缩
+
+		<dubbo:protocol name="dubbo" dispatcher="all" threadpool="fixed" threads="100" />
+
+
+		
+	8、直连
+		provider暴露20880端口
+		<dubbo:protocol name="dubbo" port="20880" />
+		
+		consumer调用url
+		<dubbo:reference id="directService" check="false" url="dubbo://localhost:20880"
+		 interface="provider.DirectService" />
+
+
+		怎样设置服务不注册到Zookeeer注册中心
+		<dubbo:registry address="zookeeper://192.168.1.121:2181?backup=192.168.1.122:2181,192.168.1.123:2181" 
+		registry="false" />
+		
+		<dubbo:registry id="xxx" subscribe="false" /> 不订阅
+
+	9、版本
+	
+		<dubbo:service interface="..." version="1.0.0"/>
+		<dubbo:service interface="..." version="2.0.0"/>
+
+		<dubbo:reference id="xxx" interface="XXX" version="1.0.0" />
+		<dubbo:reference id="xxx" interface="XXX" version="2.0.0" />
+
+
+
+	10、并发控制
+
+		<dubbo:service interface="..." executes="10"/> 服务器端并发不超过10个
+		<dubbo:service interface="..." activess="10"/> 客户端并发不超过10个
+
+		
+		<dubbo:service interface="..." activess="10"> 
+			<dubbo:method name="xx" actives="10"/> 在方法上配置
+		</dubbo:service>
+
+
+	11、连接控制
+
+		<dubbo:provider protocol="dubbo" accepts="10"/>	 服务器端接收的连接不超过10个
+		<dubbo:protocol name="dubbo" accepts="10" />
+	
+
+		<dubbo:reference interface="xxx" connections="10" /> 限制客户端使用连接数
+		<dubbo:service interface="..." connections="10"/>
+
+
+	12、服务提供者暴露一个服务的详细过程
+
+		首先ServiceConfig类拿到对外提供服务的实际类ref（如HelloWorldImpl），然后通过ProxyFactory的getInvoker()方法
+	使用ref生成一个AbstractProxyInvoker实例，到这一步就完成具体服务到Invoker的转化。接下来就是Invoker转换到Exporter的过程。
+	Dubbo处理服务暴露的关键就在Invoker转换到Exporter的过程，下面我们以Dubbo和RMI这两种典型协议的实现来
+	进行说明：
+
+	Dubbo的实现
+
+	Dubbo协议的Invoker转为Exporter发生在DubboProtocol类的export方法，它主要是打开socket侦听服务，并接收客户端发来的各种请求，
+	通讯细节由Dubbo自己实现。
+
+	RMI的实现
+
+	RMI协议的Invoker转为Exporter发生在RmiProtocol类的export方法，它通过Spring或Dubbo或JDK来实现RMI服务，通讯细节这一块由JDK
+	底层来实现，这就省了不少工作量。
+
+
+
+	13、服务消费者消费一个服务的详细过程
+
+	首先ReferenceConfig类的init方法调用Protocol的refer方法生成Invoker实例，这是服务消费的关键。
+	接下来把Invoker转换为客户端需要的接口(如：HelloWorld)。
+
+
+
