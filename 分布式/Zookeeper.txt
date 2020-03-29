@@ -1,0 +1,417 @@
+
+
+		Zookeeper
+
+
+	1、是什么
+
+		它是一个高效地分布式协调服务，他暴露了一些服务如：命名，配置，管理，同步控制，群组服务等，
+		我们可以使用zk来实现比如：达成共识，集群管理，leader选举等
+
+		它是一个高可用的分布式管理与协调框架，基于ZAB算法(原子消息广播协议)的实现，该框架能够很好的
+		保证分布式环境中数据的一致性，也正是基于这样的特性，使得zookeeper成为了解决分布式一致性问题
+		的利器
+
+
+		顺序一致性：从一个客户端发起的事务请求，最终会被严格地按照发起的顺序被应用到zk中去
+
+		原子性：所有事务请求的处理结果在整个集群中所有机器上的应用情况是一致的，也就是说
+		        要么整个集群所有的机器都成功应用了某一事务，要么都没有应用，一定不会出现部分
+		        机器应用了该事务，而另一部分没有应用的情况
+
+		单一视图：无论客户端连接的是哪一个zookeeper服务器，其看到的服务器端数据模型都是一致的
+
+		可靠性：一旦服务器成功地应用了一个事务，并完成对客户端的响应，那么该事务所引起的服务器
+		        端状态将会被一致保留下来，除非有另外一个事务对其更改
+
+		实时性：一旦事务被成功应用，那么客户端能立刻从服务器上获取变更后的新数据，zookeeper仅仅能
+		        保证在一段时间内，客户端最终一定能从服务器端读取最新的数据状态
+
+	
+
+		底层实现
+
+			ZAB(Zookeeper Atomic Broadcast 原子消息广播)
+			
+			zk保持一致性的核心算法，借鉴Paxos算法，实现主备模型（Leader和Follower）即只有一台客户端负责处理外部的写事务请求，
+			然后leader客户端将数据同步到其他Follower节点
+
+			Zookeeper客户端随机的链接到zk集群中的一个节点，如果是读请求，就直接从当前的
+			节点中读取数据，如果是写请求，那么节点就会向leader提交事务，leader收到事务
+			提交，会广播该事务，只要超过半数节点写入成功，该事务就会被提交
+
+
+		ZAB协议的特性
+			
+			确保那些已经在leader服务器上提交的事务最终被所有的服务器提交
+			ZAB协议需要确保丢弃那些只在leader上被提出，而没有提交的事务
+
+		
+		ZAB协议作用
+
+			使用单一的主进程leader来接收并处理客户端的事务请求（也就是写请求）
+			并采用了Zab的原子广播协议，将服务器数据的状态变更以事务的形式广播
+			到所有的副本(Follower)进程上去
+
+			保证一个全局的变更序列被顺序引用
+			zk是一个树形结构，很多操作都要先检查才能确定是否可以执行，比如p1的事务t1可能是
+			创建节点/a,t2可能是创建节点/a/b,只有先创建父节点/a,才能创建子节点/a/b
+			为保证这一点，zab要保证同一个leader发起的事务要按顺序被apply
+			同时还要保证只有先前的leader事务被apply之后，新选举出来的leader才能再次发起事务
+
+			当主进程出现异常的时候，整个zk集群依旧能正常工作
+
+
+		ZAB协议原理
+
+			它要求每个leader都要经历三个阶段
+			
+			发现
+			要求每个zk集群必须选出一个leader,同时leader会维护一个follower客户端列表
+			将来客户端可以和这些follower节点进行通信
+
+			同步
+			leader负责将本身的数据与follower完成同步，做到多副本存储，这样也是体现了
+			CAP中高可用和分区容错，Follower将队列中未处理完的请求消费完成后，写入本地
+			事日志中
+
+			广播
+			leader可以接受客户端新的事务请求，将新的请求广播给其他follower
+
+
+		消息有序怎么保证
+
+			leader为事务分配一个全局递增的唯一ID,称为事务ID,即zxid
+			每一个事务按照zxid的先后顺序进行排序和处理
+
+		AKC反馈消息
+
+			只要半数以上的Lollower成功反馈即可，即不需要收到全部Follower反馈
+
+	2、Zookeeper的结构
+		
+		它会维护一个具有层次关系的数据结构，非常类似一个标准的文件系统
+
+		zonde
+	
+		/app1   /app2		
+		
+
+	3、身份特性
+
+		leader	：客户端writer类型请求
+		follower：客户端reader类型请求
+		observer: 特殊的follower，可以接受客户端的reader请求，但不参与选举
+
+
+	4、应用场景
+
+		它是一个基于观察者模式设计的分布式服务管理框架，它负责存储和管理大家
+		都关系的数据，然后接受观察者的注册，一旦这些数据的状态发生变化，zk负责
+		通知已经在zk上注册的那些观察者做出相应的反应，从而实现集群中类似master
+		slave的管理模式
+
+		配置管理
+		集群管理
+		发布与订阅
+		数据库切换
+		分布式日志收集
+		分布式锁，队列管理等等
+
+
+	配置管理
+
+		如机器的配置列表
+		运行时的开关配置
+		数据库配置信息
+
+		数据量比较小
+		数据内容在运行时动态发生变化
+		集群中各个节点共享信息，配置一致
+
+	集群管理
+		
+		维护当前集群中机器的服务状态，而且能够
+		帮你选出leader,管理集群
+
+		知道当前集群中究竟有多少机器工作
+		对集群中每天集群的运行时状态进行数据收集
+		对集群中每台机器进行上下线工作
+
+	发布与订阅
+
+		它是一个典型的发布与订阅阅读模式的分布式数控管理
+		与协调框架，开发人员可以使用它来进行分布式数据的发布
+		与订阅
+
+	
+	数据库切换
+
+		zk读取节点上的数据库配置文件
+		当配置一旦发生变更时，zk就能帮助我们把变更的通知发送
+		到各个客户端
+
+
+	分布式日志收集
+
+		日志系统收集集群中的所有日志信息，进行统一管理
+
+
+	分布式高可用
+		
+		但是原生的API实现分布式功能非常困难，团队实现也太浪费时间
+		即使实现了也未必稳定，那么可以采用第三方的客户端实现，比如
+		Curator框架，它是Apache的顶级项目
+
+
+
+	应用场景
+
+		Hadoop，Storm,消息中间件，RPC服务框架
+		数据库增量订阅与消费（Mysql Binlog）
+		分布式数据库同步系统
+	
+	
+	
+	5、环境搭建
+		
+		解压
+		tar -zxvf zookeeper-xxx.tar.gz -C /usr/local/
+
+		重命名
+		mv zookeeper-xxx zookeeper
+
+		环境变量
+		vi /etc/profile
+		export ZOOKEEPER_HOME=/usr/local/zookeeper
+		export PATH=.:$ZOOKEEPER_HOME/bin:$PATH
+		
+		source /etc/profile
+
+		修改配置文件
+		cd /usr/local/zookeeper/conf
+		mv zoo_sample.cfg zoo.cfg
+
+		vim zoo.cfg
+			dataDir=/usr/local/zookeeper/data
+			server.0=192.168.1.121:2888:3888
+			server.1=192.168.1.122:2888:3888
+			server.2=192.168.1.123:2888:3888
+
+		服务器标识配置
+
+			创建文件夹 data
+			vim myid 内容为服务标识（如：0）
+			
+
+		启动zk
+
+			/usr/local/zookeeper/bin
+			zkServer.sh start
+			查看状态
+			zkServer.sh status
+
+		操作
+
+			zkCli.sh 进入zk客户端
+
+			根据命令进行操作
+
+				查找 ls / ; ls /zookeeper
+
+				创建并赋值：create /ya hadoop
+				获取 get /ya
+				设值 set /ya hadoop
+
+				递归删除节点 rmr /path
+				删除某个节点 delete  
+			
+
+	6、API
+
+		Zookeeper() 参数说明
+
+			connecString:连接服务器列表，用逗号分隔
+			sessionTimeout:心跳检测时间周期，毫秒
+			watcher:事件处理通知器
+			canBeReadOnly:标识当前会话是否支持只读
+			sessionId和sessionPasswd:提供连接zookeeper的sessionId和密码
+			通过这两个确定唯一一台客户端，目的是可以提供重复会话
+
+			异步连接
+
+		create
+		zk.create(String path, byte[] date, List<ACL> act, CreateMode mode)
+		zk.create("/testRoor", "testRoot".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateNode.PERSISTENT);
+
+		父节点testRoor需要先存在
+		zk.create("/testRoor/children", "xxx".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateNode.PERSISTENT);
+			
+		curator 则可以通过判断父节点是否存在，然后做相应的创建操作		
+
+
+		
+		CreateMode节点类型
+
+			PERSISTENT 持久化节点
+			PERSISTENT_SEQUENTIAL 持久顺序节点
+			EPHEMERAL 临时节点，本次会话有效
+			EPHEMERAL_SEQUENTIAL 临时顺序节点
+
+		
+
+		临时节点的应用,锁
+
+			client1 81:USER ID:1001
+			get /user/1001
+			如果没有节点 create(EPHEMERAL )
+                        update ...持久化操作 ==81与82进行数据同步
+			zk.close()
+
+
+			client2 82:USER ID:1
+			get /user/1001 ==> null 
+
+		异步方式
+			
+			注册一个异步回调函数
+			要实现AsynCallBack.StringCallBack接口
+			重写processResult(int rc, String path, Object ctx, String name)方法
+			当节点创建完毕后调用此方法
+
+			rc:服务端响应码0表示调用成功
+			   -4表示端口连接
+			   -110表示指定节点存在
+		           -112 表示会话已经过期
+			path:接口调用时，传入API的数据节点的路径参数
+			ctx: 调用接口传入API的ctx的值
+			name:实际在服务器端创建节点的名称
+
+
+			zk.delete("/testRoot", -1, new AsyncCallback.VoidCallback() {
+
+				public void processResult(int rc, String path, Object ctx) {
+					
+				}
+			},"a") //ctx: "a" ,用于传递上下文信息的对象
+
+
+
+		获得节点
+
+			getData(String path, boolean watch, Stat stat)
+			byte[] data = zk.getData("/testRoot",false,null);
+
+
+			List<String> list = getChildren("/testRoot",false);//获得的是直接孩子节点的相对地路径
+
+		修改节点
+
+			zk.setData("testRoot", "modify data root".getBytes(), -1);
+
+		判断是否存在
+
+			zk.exists("/testRoot", false);
+
+	7、watch核心机制
+		
+		zk有watch事件，是一次性触发的，当watch监视的数据发生变化时，
+		通知设置了该watch的client,即watcher
+
+		同样，其watcher是监听数据发送了某些变化，那就一定会有对应的
+		事件类型和状态类型
+
+		事件类型(znode节点相关的)
+		EventType.NodeCreated
+		EventType.NodeDataChanged
+		EventType.NodeChildrenChanged
+		EventType.NodeDeleted
+
+
+		状态类型（跟客户端实例相关的）
+		KeeperState.Disconnected
+		KeeperState.SyncConnected
+		KeeperState.AuthFailed
+		KeeperState.Expired
+
+		
+		Watcher接口 - 方法process
+
+		public interface Watcher {
+    			abstract public void process(WatchedEvent event);
+		}
+		
+		在父path上watch
+
+				
+			
+	8、Auth - ACL
+
+		ACL(Access Control List)
+		
+		ZK三种模式
+	
+			IP:通过ip地址粒度来控制权限
+
+			Digest:类似于username,password；两次加密：sha1+base64
+		
+			World:最开放的权限控制模式
+
+			Super:超级用户模式，可任意操作ZK
+
+		对数据的操作权限
+
+			CREATE,DELETE,READ,WRITE,ADMIN
+
+		
+
+		zk.addAuthInfo("digest","xxx".getBytes());
+
+
+	9、zkClient
+
+		在原生API基础上开发
+
+		解决了递归创建的问题，只是创建节点的key,如"/par/child"
+
+		递归删除
+
+
+		屏蔽了Watcher,不用重复的进行watch
+
+		
+		subscribeChildChange方法参数：
+			path路径
+			实现了IZkChildListener接口的类,重写handleChildChange
+
+		
+
+		只监听，节点的新增和删除，不监听子节点的数据变化
+		zkc.subscribeChildChanges("/super", new IZkChildListener() {
+
+			public void handleChildChange(String parentPath, List<String> currentChilds) throws Exception {
+				System.out.println("parentPath:" + parentPath); //发生变更的节点
+				System.out.println("currentChilds:" + currentChilds);//当前变化之后的数据，原生的无
+			}
+		
+		});
+
+
+
+		监听数据的变化
+		
+		zkc.subscribeDataChanges("/super", new IZkDataListener() {
+
+			public void handleDataChange(String dataPath, Object data) throws Exception {
+				System.out.println("变更的节点为："+ dataPath +" 变更内容为："+ data);
+			}
+
+			public void handleDataDeleted(String dataPath) throws Exception {
+					System.out.println("删除的节点为："+ dataPath);
+			}
+			
+		});
+
+
+
+
