@@ -1,0 +1,175 @@
+
+【1】th:text
+<span th:text="Hello"></span> 向页面输出信息
+Controller注入Model,Model andAttribute(key, value)
+<span th:text="${msg}"></span> 
+
+【2】th:value
+将值放入input组件中进行显示
+<input type="text" name="username" th:value="${msg}"/>
+
+【3】字符串判空
+大部分内置对象都已s结尾，如numbers,dates
+<span th:text="${#strings.isEmpty(msg)}"></span> 为空则为true，不为空则为false
+<span th:text="${#strings.contains(msg,'9')}"></span> 判断是否包含某内容
+<span th:text="${#strings.startsWith(msg,'a')}"></span> 
+<span th:text="${#strings.endsWith(msg,'a')}"></span> 
+<span th:text="${#strings.length(msg)}"></span>
+<span th:text="${#strings.indexOf(msg,'h')}"></span> 下标
+
+<span th:text="${#strings.substring(msg,13，15)}"></span> 截子串，不包含结束
+<span th:text="${#strings.toUpperCase(msg)}"></span> 
+<span th:text="${#strings.toLowerCase(msg)}"></span> 
+
+【4】日期
+<span th:text="${#dates.format(key,'yyyy/MM/dd')}"></span> 
+
+<span th:text="${#dates.year(key)}"></span>
+<span th:text="${#dates.month(key)}"></span>
+<span th:text="${#dates.day(key)}"></span>
+
+【5】条件判断
+
+th:if
+
+<span th:if="${sex}=='男'">性别，男</span>
+<span th:if="${sex}=='女'">性别，女</span>
+
+
+
+<div th:switch="${id}">
+	<span th:case="1">ID为1</span>
+	<span th:case="2">ID为2</span>
+</div>
+
+
+
+【6】迭代list
+	<table>
+	  <tr>
+	  	<th>编号</th>
+	  	<th>姓名</th>
+	  	<th>组别</th>
+	  </tr>
+	  <tr th:each="user : ${list}">
+	  	<td th:text="${user.id}"></td>
+	  	<td th:text="${user.name}"></td>
+	  	<td th:text="${user.groupId}"></td>
+	  </tr>
+	</table>
+
+
+或者（var为状态变量）
+
+	<table>
+	  <tr>
+	  	<th>编号</th>
+	  	<th>姓名</th>
+	  	<th>组别</th>
+	  	<th>index</th>
+	  	<th>size</th>
+	  	<th>even</th>
+	  	<th>odd</th>
+	  	<th>first</th>
+	  	<th>last</th>
+	  </tr>
+	  <tr th:each="user,var : ${list}">
+	  	<td th:text="${user.id}"></td>
+	  	<td th:text="${user.name}"></td>
+	  	<td th:text="${user.groupId}"></td>
+		<td th:text="${var.index}"></td> index从0开始
+		<td th:text="${var.size}"></td>
+                <td th:text="${var.count}"></td> count从1开始
+		<td th:text="${var.even}"></td>
+		<td th:text="${var.odd}"></td>
+		<td th:text="${var.first}"></td>
+		<td th:text="${var.last}"></td>
+	  </tr>
+	</table>
+
+
+【7】迭代Map
+	Map<String, User> map,put了多个User
+
+	u1: User
+        u2: User
+
+
+	<table>
+	  <tr>
+	  	<th>编号</th>
+	  	<th>姓名</th>
+	  	<th>组别</th>
+	  </tr>
+	  <tr th:each="maps : ${map}">
+	  	<td th:each=" entry: ${maps}" th:text = "${entry.value.id}"></td>
+	  	<td th:each=" entry: ${maps}" th:text = "${entry.value.name}"></td>
+                <td th:each=" entry: ${maps}" th:text = "${entry.value.groupId}"></td>
+	  </tr>
+	</table>
+
+
+【8】从HttpServletRequest req.
+
+		req.setAttribute("req", "req value");
+		req.getSession().setAttribute("session", "session value");
+		req.getSession().getServletContext().setAttribute("context", "context value");
+		
+
+    中取得值
+
+
+	<span th:text="${#httpServletRequest.getAttribute('req')}"></span>
+	<span th:text="${session.session}"></span>
+	<span th:text="${application.context}"></span>
+
+
+【9】URL表达式
+
+   绝对路径
+
+	<a th:href="@{http://www.baidu.com}">绝对路径</a>
+
+  相对路径
+
+    相对于当前项目的根
+
+    <a th:href="@{/show}">绝对路径</a>  找配置为show的Controller
+
+
+    相对于服务器路径的根，当前的tomcat（~ 服务器的根路径）
+	
+     <a th:href="@{ ~/project2/resourcename}">绝对路径</a> 
+
+   在url中实现参数传递
+
+     <a th:href="@{ /show(id=1,name=zs)}">绝对路径</a> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
