@@ -1,0 +1,210 @@
+﻿
+	ActiveMQ
+	
+1、需求
+	不需同步，队列存储消息
+	一对多 
+	Apache ActiveMQ,阿里RocketMQ
+	均遵循JMS规范，JMS只是接口
+	
+	JMS 定义的消息类型  
+		StreamMessage Java原始值的数据流
+		MapMessage 一套名称-值对
+		TextMessage 一个字符串对象
+		ObjectMessage 一个序列化的java对象
+		ByteMessage 一个未解释字节的数据流
+	
+	activemq io,随机读写，顺序读写，满足80%以上的场景,持久化kahadb	
+	rabbitMQ性能还不错，数据高可靠，支持天然的集群
+
+	
+		
+2、Hello World
+
+
+	生产端
+
+	接口ConnectionFactory  实现ActiveMQConnectionFactory 		
+		
+	通过用户名 + 密码+ 协议[默认为tcp,端口61616] 来构建 	
+		
+	对应conf/activemq.xml
+
+	Connection createConnection()
+	connection.start()  //重要，开启连接，connection默认是关闭的
+
+	Session conn.createSession(知否支持事务，接收的模式);
+
+	Destination session.createQueue("名称")
+
+	MessageProducer session.createProducer(目标[destination],可以为空) 	
+
+	TextMessage msg = session.createTextMessage("消息内容")
+
+	producer.send(dest,msg); dest为上边创建的Destination
+
+	connection close(); 需要关闭连接
+
+	
+
+	消费端
+	
+
+	接口ConnectionFactory  实现ActiveMQConnectionFactory 		
+		
+	通过用户名+密码+协议来构建 	
+		
+	对应conf/activemq.xml
+
+	Connection createConnection()
+	connection.start()
+
+	Session conn.createSession(知否支持事务，接收的模式);
+
+	Destination session.createQueue("名称")
+
+	MessageConsumer session.createConsumer(destination);
+	
+	while(true) {
+
+		TextMessage consumer.receive();
+	}
+
+
+3、安全机制
+
+	activemq默认不开启认证，默认的用户和密码都是null
+	
+	web界面 http://localhost:8161/admin
+	使用jetty部署conf jetty-realm.properties 可以添加用户
+	
+
+	activemq认证
+
+	activemq.xml
+	broker节点下添加 
+
+	<plugins>
+
+		<simpleAuthenticationPlugin>
+			<users>
+				<authenticationUser username="u" password="p" groupsc="users,admins"></authenticationUser>
+			</users>
+		</simpleAuthenticationPlugin>
+	</plugins>
+
+
+	在创建Factory的时候，使用该用户即密码
+
+
+
+4、持久化数据源
+
+	默认是kahadb，可以换成自定义的数据源
+	
+        <persistenceAdapter>
+            <jdbcPersistenceAdapter dataSource="#mysql-ds"/>
+        </persistenceAdapter>
+
+	<!-- 自定义mysql数据源-->
+	<bean id="mysql=ds" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql//localhost:3306/test?relaxAutoCommit=true"/>
+		<property name="username" value="root"/>
+		<property name="password" value="123456"/>
+		<property name="maxActive" value="200"/>
+		<property name="poolPreparedStatements" value="value"/>
+	</bean>
+
+
+	在activemq包中加入mysql-connector ,commons-dbcp，commons-pool的jar包和
+       
+	会自动创建三张表
+		activemq_acks
+		activemq_lock
+		activemq_msgs
+		
+		
+	如果没有消费者，只有生产者，则消息会存储在mysql的activemq_msgs表中，直到
+	有消费者消费完毕，同时	activemq_msgs表会被清空
+		
+		
+5、API
+
+	Session创建时，可以指定是否支持事务
+	如果设置为true，需要执行session.commit()方法
+
+	签收模式
+		Session.AUTO_ACKNOWLEDGE 客户端从receive或onMessage成功返回时
+		session自动签收客户端的这条消息的收条
+
+		Session.ClIENT_ACKNOWLEDGE 客户端通过调用消息的
+		msg.acknowledge方法签收消息
+
+		Session.DUPS_OK_ACKNOWLEDGE session不必确保对传送消息的签收
+		它可能引起消息的重复，但是降低了session的开销
+
+	producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT)	不持久化；PERSISTENT持久化
+
+	
+	发送消息可以设置优先级及消息过期时间[单位为毫秒]
+	producer.send(dest,message,deliveryMode,priority,timeToLive)
+				
+	过期时间指的是在指定的时间如果消息没有得到消费，则消息的状态会变成超时(如果做了持久化)
+
+	同时将消息放到Dead Letter Queue [死信队列] 中	
+		
+		
+	配置优先级,优先级从0-9十个级别
+
+	<policyEntry queue="queueName" priorityzedMessages="true"/>
+		
+	能保证消息的发送顺序，但不能保证消息的消费顺序
+
+	
+6、MessageConsumer
+
+	创建MessageConsumer，可以对消息进行过滤，指定messageSelector
+	messageSelector为消息的过滤表达式如: "color='blue'"；"color='blue' AND sal>2000"
+
+	如session.createConsumer(desti, "age>0")
+	
+	
+	需要在Producer发送消息前设置需要进行过滤的属性
+	msg.setIntProperty("age",28)
+
+
+7、Topic创建(一对多）
+
+	Destination session.createTopic("topic");
+
+	consumer端也做同样的操作
+		Destination session.createTopic("topic");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
