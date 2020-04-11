@@ -153,194 +153,541 @@ a.slice(start,end)
      alert  confirm  确认框  prompt输入框
 
 
-10、主要事件：
-onclick 鼠标点击
-onmouseover 鼠标放上
-onmouseout鼠标离开
-ondblclick  双击事件
-onmousedown 鼠标按下
-onmounseup鼠标抬起
-onmounsemove 鼠标移动
+11、事件：
 
 
-表单事件
-onfocus 获得焦点
-onblur 失去焦点
-onsubmit 提交事件
-onchange 发生改变的时候
-onreset 重置事件
+11.1 什么是事件
 
-键盘事件
-onkeypress 键盘按下一次
-onkeydown 按键按下
-onkeyup 按键抬起
+	可以被js检测到的行为，本质上是一种交互操作
+
+11.2 事件的作用
+
+	各个元素之间可以借助事件来进行交互
+	用户和页面之间也可以通过事件类交互
+	后端和页面之间也可以通过事件来交互
+
+11.3 事件的传递
+
+	事件不仅能够和触发者交互，还能在特定的情况下沿着dom tree逐级传递
+	和dom tree中的各个节点进行交互，称为事件传递机制
+
+	事件传递的方式：
+		事件冒泡：从具体到不具体，逐级向上，子和父都绑定了相同的事件
+		事件捕获：从不具体到具体，逐级向下
+
+11.4 非IE事件绑定
+
+ 	11.4.1 HTML事件 - 绑定操作发生在html代码中的事件
+
+		on+事件 = '函数();函数();'，执行的顺序是绑定时函数书写的顺序
+		事件采用冒泡机制
+
+		<div onclick="test();test1();"></div>
+		意味着可以绑定多个相同的事件
+
+		事件的移除
+		元素.setAttribute('on+事件名', null);如d1.setAttribute('onclick',null);
+		事件移除后，仍然会事件传递
 
 
-窗口事件
-onload 页面加载完成后立即执行
+		html事件缺陷：耦合性太强了，修改一处另一处也要修改-如修改函数名
+		当函数没有加载成功，用户去触发事件，则会报错
+
+	11.4.2 DOM0级事件
+		
+		在js脚本中直接通过on+事件名绑定的事件，元素.on+事件名 = function(){}
+
+		以冒泡机制来处理事件，不存在兼容问题
+
+		一个元素的多个相同事件，会被覆盖，按最后一个
+		意味着同一元素不能绑定多个相同的事件
+
+	
+	11.4.3 DOM2级事件
+
+		在js脚本中，通过addEventListener函数绑定的事件
+		元素.addEventListener(type,listender,useCapture)
 
 
-Event
-保存事件发生时的相关信息
-event.clientX  事件发生时的X坐标
-event.clientY 事件发生时Y的坐标
-event.target 事件源
+		type 事件类型
+		listener 监听函数
+		useCapture 是否使用捕获，默认false，即冒泡机制
+		
+		DOM2级事件可以绑定多个函数，执行顺序按函数书写顺序
+
+		btn.addEventListener('click',function(){//a},true);
+		btn.addEventListener('click',function(){//b},true);
+
+		var div = document.querySelector('div');
+		div.addEventListener('click',function() {
+			console.log('div点击了');
+		},false);
+
+		如果设置useCapture为true，则事件传递由dom tree的上层开始执行事件，最终到具体元素事件
 
 
-11、parseInt（string,redix） 解析字符串，返回一个指定基数的整数
+		解除绑定
+
+		元素.removeEventListener(type,listender,useCapture)
+		btn.removeEventListener('click',test,false) //直接用函数名
+
+		匿名函数无法解除绑定，即形式为btn.addEventListener('click',function(){//a},true);
+
+
+11.5 IE浏览器事件的绑定
+
+		HTML事件处理程序：等同于非IE事件绑定
+		
+		DOM0级事件：等同于非IE
+
+		DOM2级事件：通过attachEvent函数绑定事件
+
+		元素.attachEvent(type,listener)
+
+
+		type：事件类型 有on
+		listener 监听函数
+
+		如果绑定多个函数，按照函数书写的倒叙执行(IE8是这样)
+
+		btn.attachEvent('onclick',function(){});
+		
+		IE9-11支持 btn.addEventListener，不支持attachEvent
+		IE11绑定EventListener按照函数书写的顺序执行
+		
+	
+		事件的移除
+
+			元素.detachEvent(type,listener)
+			匿名函数无法移除
+
+			d1.detachEvent('onclick',test);
+
+
+11.6 事件的浏览器兼容
+
+		<script type="text/javascript">
+		
+			var eventObj = {
+				
+				addEvent:function(ele, type, listener){
+					if (ele.addEventListener) {//判断是否有该属性
+						console.log('event listener');
+						ele.addEventListener(type,listener);
+					}else {
+						console.log('event');
+						ele.attachEvent('on'+type, listener);
+					}
+				},
+				
+				removeEvent:function(ele,type,listener) {
+					if (ele.removeEventListener) {
+						ele.removeEventListener(type,listener);
+					}else {
+						ele.detachEvent('on'+type, listener);
+					}
+				}
+			
+			}
+
+			function test() {
+				eventObj.removeEvent(div,'click',test)
+				console.log('test');
+			}
+
+			var div = document.querySelector('div');
+			eventObj.addEvent(div,'click',test);
+			
+		</script>		
+
+11.7 鼠标事件类型
+	click 鼠标点击
+	dblclick  双击事件,双击事件会触发单击事件
+	mousedown 鼠标按下，会触发单击事件
+	mounseup 鼠标抬起 
+	mounsemove 鼠标移动
+
+	mouseenter 鼠标移入(不冒泡)
+	mouseleave 鼠标移出(不冒泡)
+ 
+
+	
+	元素.on事件 = function(){  }
+	元素.addEventListener('事件',function(){});
+
+
+11.8 Event
+
+	保存事件发生时的相关信息
+	event是一个容器，存放触发的事件本身，可作为形参给函数
+
+	event.clientX  事件发生时的X坐标
+	event.clientY 事件发生时Y的坐标
+	event.target 事件源
+
+
+
+11.8.1 非IE event对象常用方法属性
+
+        event.type 事件类型
+	event.bubbles 是否当前事件是否支持冒泡，与是否使用冒泡无关
+	
+	event.eventPhase 事件传导至当前节点时，处于什么状态
+		1 事件处于捕获状态
+		2 事件处于真正的触发者
+		3 事件处于冒泡状态
+	
+	event.target 返回事件真正的触发者
+	event.currentTarget 返回事件的监听者，触发的事件绑定到了哪个节点，就返回谁
+
+	event.stopPropagation() 阻止事件从当前节点传播到下一个节点，不会影响
+	同一节点上的其他事件句柄
+
+	
+	event.preventDefault() 取消当前节点的默认行为
+	如超链接的点击跳转行为，该方法没有返回值
+
+	a_link.onclick = function(){
+		event.preventDefault();
+	}
+
+	event.cancelable 属性用来判断当前节点能否使用preventDefault方法来取消默认行为
+	如果可以返回true,否则返回false
+
+	a_link.click = function(){
+		console.log(event.cancelable);
+	}
+
+11.8.2 IE event对象常用方法属性
+
+	非IE下event的值默认为undefined,而IE中event的值默认为null
+
+	非IE下可以通过DOM0或DOM2的参数来使用event,
+	而IE中DOM0无法使用传参的形式来使用event(可以直接用event),DOM2可以
+
+	兼容性解决
+	
+	e为传参	
+	var eve = e||window.event;
+
+	
+	srcElement 属性
+	事件真正的触发者，等同于非IE下的target
+
+	var target = eve.srcElement||eve.target;
+
+	cancelBubble属性
+	阻止事件在当前节点上的冒泡行为，类似非IE下的stopPropagation
+	stopPropagation阻断事件传递，而cancelBubble属性则阻断事件冒泡
+
+	event.cancelBubble = true 取消冒泡
+	
+	returnValue属性
+	设置是否取消当前节点的默认行为
+	作用类似于非IE下的preventDefault方法
+	event.returnValue = false 取消默认行为
+ 	
+
+11.9 文档事件 - 焦点事件
+
+	加载成功 load、error
+	dom加载成功时 domcontentloaded
+	页面卸载 beforeunload
+	文档加载状态判断时间readystatechange
+	文档大小发生改变时的回调事件 resize
+
+	load 节点加载成功
+	error 节点加载失败
+
+11.9.1 load
+	
+	在head中为页面元素添加点击事件，通过文旦过得onload事件
+	解决了，由于网页加载未完成，而获取到的页面元素失败问题
+
+	整个页面加载完成才会执行
+	window.onload = function() {
+
+		var div = document.querySelector("#someid");
+		div.onclick = function(){}
+	}
+	
+11.9.2 domcontentloaded
+
+	先执行domcontentloaded，后执行 load
+	
+	beforeunload
+	页面卸载：离开，刷新，关闭页面
+
+	window.onbeforeunload = function() {
+		event.returnValue='';
+		return '是否离开';	
+	}
+	
+11.9.3 文档加载状态判断 readystatechange
+
+	用于在网页的刷新等
+
+	当document的readyState改变时触发
+
+	document 节点中拥有一个属性readyState
+	有三个可能的值：
+		loading 加载外部资源
+		interactive 加载外部资源
+		complete 加载完成
+
+	
+	有两次状态改变，也就是会触发两次
+
+	document.onreadystatechange = function() {
+
+		console.log(document.readyState);
+	}
+
+11.9.4 resize 文档大小发生改变
+	window.onresize = function(){
+		
+	}
+	
+11.9.5 焦点事件
+
+	常用在表单中的验证，如设置span(初始display:none)
+	获得焦点时 span提示框 display = 'inline-block'
+	innerText = '提示内容'
+
+	失去焦点时，验证加span提示
+
+	正在和用户交互的节点称为焦点
+	blur 失去焦点
+	focus 获得焦点
+	
+	两个事件，均不支持冒泡，仅在当前节点触发
+	绑定 addEventListener；on+事件
+
+
+11.10 滚动事件
+
+	scroll事件会在【文档或元素】发生滚动操作时触发
+
+	属性scrollTop,scrollLeft 可读写，表示文档滚动的距离(没有单位)
+
+	IE document.documentElement.scrollTop/Left
+	非IE document.body.scrollTop/Left
+
+	
+	window.onscroll = function(){
+
+		var top =  document.body.scrollTop|document.documentElement.scrollTop;
+		var left = document.body.scrollLeft|document.documentElement.scrollLeft;
+
+		console.log(top + left );
+	}
+	
+
+11.10.1 对于文档 scrollTop/Left 表示滚动的距离，没有单位
+	
+	设置
+	document.body.scrollTop||document.documentElement.scrollTop
+
+	btn.onclick = function() {
+		timer = setInterval(function(){//使用定时器
+				
+			//获取滚动条到顶部的举例
+			var distance = document.body.scrollTop||document.documentElement.scrollTop;
+			distance = distance*0.8;
+					
+			document.body.scrollTop = distance;
+			document.documentElement.scrollTop = distance;
+					
+			if (distance == 0) {//如果滚动条到顶部，则停止
+				clearInterval(timer);
+			}
+		},50);
+	}
+
+
+11.10.2 对于元素发生滚动事件
+
+	overflow:scroll; 设置溢出时，添加滚动条
+
+	div.onscroll = function() {
+		var top = div.scrollTop;//获取元素滚动距离
+		
+	}
+
+
+11.11 键盘事件
+
+	
+	keypress 键盘按下一次，按住不放，事件会被连续触发
+	keydown 按键按下，按住不放，事件会被连续触发
+	keyup 按键抬起	
+
+	键盘事件支持事件冒泡，因此可以将键盘事件绑定到具体触发者的父级上
+
+	判断按了什么键，常见的回车13，空格8
+	
+		event.keyCode 编值码
+
+		name1.addEventListener('keydown',function(event) {
+			console.log('执行');
+			console.log(event.keyCode);
+		})
+
+			
+		pass.onkeydown = function() {
+			console.log('执行');
+			console.log(event.keyCode);
+		}	
+
+	keydown和keypress 的区别
+
+
+		keypress只要用来捕获：数字(包括shift+数字)、字母(大小写)，小键盘等
+		能够显示在屏幕上的字符，但不能对功能键 的正常响应
+		
+		keydown和keyup通常可以捕获键盘除了PrScrn所有按键
+
+
+		捕获长度
+			keypress 只能捕获单个字符
+			keydown和keyup可以捕获组合键
+
+		在keyCode上
+		keydown，keyup 获取的是字母的大写的编码
+		keypress获取的是字母本身的编码，如a,前者就是65，或者是97
+
+		所有功能按键，如ALT,ENTER都不能被keypress识别，只能被keydown识别
+
+		keypress不区分主键盘和小键盘数字字符
+		keydown和keyup区分
+
+
+11.12 触摸事件
+
+	touchstart 手指触摸屏幕时触发
+	touchmove 手指在屏幕上滑动时触发
+	touchend 手指从屏幕上移开时触发
+	*touchcancel 系统停止跟踪触摸时触发，如电话或弹出消息
+	
+	无特殊说明，均为冒泡，【只能用 DOM2 绑定】
+
+	event对象包含
+	touches：Touch对象的数组，当前跟踪的触摸操作,所有触摸点列表
+	targetTouches:特定于事件
+
+	Touch触摸对象的属性
+		clientX
+		clientY
+
+	访问event.touches[i].clientX
+
+	
+	
+
+12、表单事件
+	submit 提交事件
+	change 发生改变的时候
+	reset 重置事件
+
+
+
+
+13、parseInt（string,redix） 解析字符串，返回一个指定基数的整数
      redix是前者基于的进制
      如10,2 即 10基于2进制，转换成的int数为2
      parseFloat（str）
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+14、实例 - 三级联动
+
+==================================================
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>三级联动</title>
+		<style>
+		
+			body{
+				margin:0px;
+				padding:0px;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- 三级联动-->
+		<div>
+			省<select name="" id= "province">
+				<option value="-1">请选择</option>
+			</select>
+			市<select name="" id="city"></select>
+			区<select name="" id="area"></select>
+			
+		</div>
+		
+		<script type="text/javascript"> 
+			var province = document.querySelector("#province");
+			var city = document.querySelector("#city");
+			var area = document.querySelector("#area");
+			
+			var pros = ['河北','黑龙江',"湖南"];
+			var cityArr = [
+				['沧州','廊坊','青县'],
+				['佳木斯','黑河'],
+				['怀化','张家界']
+			
+			];
+			
+			var areaArr = [
+				[[['沧州一区'],['沧州二区']],[['廊坊一区'],['廊坊二区']],[['青县一区'],['青县二区']]],
+				[[['佳木斯一区'],['佳木斯二区']],[['黑龙江一区'],['黑龙江二区']]],
+				[[['怀化一区']],[['张家界一区']]]
+			
+			];
+			
+			for (var i = 0; i < pros.length; i++) {//给省先初始化
+				var o = new Option(pros[i],i);
+				province.options.add(o);
+			}
+			
+			province.onchange = function(event){//省变化事件
+				var index = event.target.selectedIndex - 1;
+				city.options.length = 0;
+				area.options.length = 0;
+				if (index != -1) {//给市联动初始化
+					var cityArrTmp = cityArr[index];
+					for (var j = 0; j < cityArrTmp.length; j++){
+						var c = new Option(cityArrTmp[j],j);
+							city.options.add(c);
+					}
+					//默认是第一个市的地区
+					var areas  = areaArr[index][0];
+					for(var k = 0; k < areas.length; k++){
+						var a = new Option(areas[k],k);
+							area.options.add(a);
+					}
+				}
+			}
+			
+			city.onchange = function(event){//市发生改变时，区联动
+				var provinceIndex = province.selectedIndex;
+				var cityIndex = event.target.selectedIndex;
+				
+				area.options.length = 0;
+				if(provinceIndex!=-1){
+					
+					var areas = areaArr[provinceIndex-1][cityIndex];
+					
+					for(var g=0; g<areas.length; g++){
+							var a = new Option(areas[g],g);
+							area.options.add(a);
+					}
+				}
+			}
+		</script>
+	</body>
+</html>
+
+====================================================================================
 
 
 
