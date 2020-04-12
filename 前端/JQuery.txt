@@ -964,9 +964,30 @@ $("button").click(function(){
 
 
 
+24、滚动条
+
+	
+	滚动事件
+
+	$(window).scroll(function(){});
 
 
+	获取滚动条的位置
 
+	$(window).scrollTop();
+
+
+25、元素到顶部的举例
+
+	元素.offset().top();
+
+
+26、为元素添加类
+
+	元素.addClass("clazz,无点");
+
+	移除
+	removeClass();
 
 
 
