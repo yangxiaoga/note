@@ -15,6 +15,9 @@ clear:设置一个元素的侧面是否允许其他浮动元素
      	display: -moz-box;
      	display:-webkit-box;
 
+水平居中
+	margin o auto;
+
 <html>
 <head lang="en">
     <meta charset="UTF-8">
@@ -317,6 +320,9 @@ column-rule：[ column-rule-width ] || [ column-rule-style ] || [ column-rule-col
 
 12、圆角
 	border-radios
+
+
+	取值为50%时，画圆
 <head>
     <meta charset=utf-8/>
     <title>HTML5结构元素</title>
@@ -697,6 +703,8 @@ ie对其的支持不佳
           -o-background-size:cover;
           background-size:cover;
           /*定义动画过程 transition 定义动画状态 ease-in为渐入 background背景色*/
+
+	  属性，持续时间，速度变化类型，延迟时间，
           -webkit-transition:-webkit-transform .5s ease-in, background .5s ease-in;
           -moz-transition:-webkit-transform .5s ease-in, background .5s ease-in;
           -o-transition:-webkit-transform .5s ease-in, background .5s ease-in;
