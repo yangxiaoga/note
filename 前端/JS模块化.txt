@@ -1,0 +1,351 @@
+
+	JavaScript模块化
+
+1、是什么
+
+	隔离，组织复杂的js代码，实现特定功能
+
+2、常规
+
+	简单放到一起，容易造成全局变量的污染，如会挂载到window上的函数
+
+3、怎么做
+
+	3.1 使用对象
+
+	var module = {
+
+		num:10,
+		fn1:function(){},
+		fn2:function(){}
+
+	}
+
+	调用
+	module.fn1();
+
+	缺点:可以在外部修改内部成员
+	
+	3.2 自执行函数(加了()可以立即执行)
+
+	var module = (function(){
+		var num = 10;
+		function fn1(){
+		    console.log(num);
+		}
+		return {//把内容返回给上一级
+		    fn1:fn1
+		}
+		
+	})();
+
+	mymodule.fn1();
+
+
+
+	3.3 放大模式 - 继承
+
+	var module1 = (function(){
+		var num = 10;//在此为私有，module看不到
+		function getNum(){
+		    console.log(num);
+		}
+		return {//把内容返回给上一级
+		    fn1:getNum
+		}
+		
+	})();	
+
+		
+	继承module1:
+
+	var module2 = (function(module1 ){
+		
+		module1.setNum = function(){};
+		return module1;
+		
+	})(module1 );
+
+		
+	每一个module只处理当前相关的内容
+
+
+	3.4 宽放大模式
+
+	
+	var module1 = {
+		var num = 10,
+		function getNum(){
+		    console.log(num),
+		}
+		
+	}
+		
+	
+	module1 = null;
+
+	var module2 = (function(module1 ){
+		
+		module1.setNum = function(){};
+		return module1;
+		
+	})(window.module1||{ } ); //空对象
+
+
+	3.5 jQuery和$是等价的
+
+	var module = (function($){
+		function getJQ(){
+			console.log($('div'));
+		};
+		return {
+			getJQ:getJQ
+		}
+		
+	})(jQuery)
+	
+	module.getJQ();
+
+
+	
+4、commonjs
+
+	nodejs每一个单独的js文件都是一个独立的模块
+
+	定义模块
+	模块输出
+		module.exports
+	加载模块
+		require,相当于java中的import
+	
+	==================================
+	module1.js
+
+	function demo(){};
+	module.exports = {
+	    demo:demo
+	}
+
+	==================================
+	module2.js
+
+	var module1  = require('./module1');
+	module1.dome();
+	
+
+5、	AMD asynchronous module definition
+	异步模块定义
+
+	需要RequireJS
+	解决的问题
+	
+		js文件异步加载，避免网页失去响应
+		管理模块之间的依赖性，便于代码的编写和维护
+
+	示例1：
+	==================================================================
+	目录结构：
+		index.html
+		js/apps/geInfo.js 
+		js/apps/seInfo.js
+		js/libs/jquery.js
+		js/libs/require.js //需要引入require.js
+		main.js
+
+
+	index.html :
+
+	页面引入require,data-main 文件主入口，是整个网页的入口代码
+	==========================================
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>require</title>
+			<style type="text/css">
+			.box{
+				width:200px;
+				height:200px;
+				background-color:green;
+			}
+			</style>
+			<!--引入require.js,并设置主入口main.js,js 后缀可省-->
+			<script type="text/javascript" src="js/libs/require.js" data-main="main"></script>
+		</head>
+		<body>
+		<div class="box">11111</div>
+		</body>
+	</html>
+	==========================================
+
+	main.js :
+	主入口
+	
+	require.config(
+	{
+		baseUrl:"js", //基础路径
+		paths:{
+			//不同模块的路径 ,后缀js可省略
+			//一般将文件名作为模块名
+			"jquery":"libs/jquery",
+			"getInfo":"apps/getInfo",
+			"setInfo":"apps/setInfo"
+		},
+		
+		/**shim为哪些没有使用define()来声明依赖关系，设置模块的
+		"浏览器全局变量注入"型脚本做依赖和导出配置，如jquery*/
+		shim:{
+			/**  getInfo依赖jquery,给它注入jquery*/
+			//如果没有遵循 define规则，则需要用shim导出，如swiper
+			//可以添加多个，用逗号分隔
+
+			"getInfo":{
+				deps:['jquery'],
+				exports:'getInfo'
+			}
+		}
+	}
+	);
+	require(['jquery','getInfo','setInfo'],
+		function($,getInfo,setInfo){/** 回调函数 */
+			setInfo.setName('.box');//模块名.方法名，设置div的内容
+		}
+	)
+	========================================
+
+	setInfo.js
+
+	define(['getInfo'],    /** 注入getInfo*/
+		function(getInfo){ /** 作为参数注入getInfo*/
+			function setName(ele){
+				//给div设置新的内容
+				$(ele).html(getInfo.getName());
+			};
+			return{
+				/** 导出函数setName，用于require中调用*/
+				setName:setName
+			}
+		}
+	)
+
+	===============================================
+
+	getInfo.js
+
+	define(
+		function(){
+			function getName(){
+			return "新名称";
+			};
+			return{
+				/** 导出函数getName*/
+				getName:getName
+			}
+		}
+	)
+
+	=============================================
+
+6、require 的define中也可以是个函数
+
+	如： define(
+			function(){
+
+			return{
+
+				adapter:function(data){
+					xxxxx;
+				}
+			}
+
+			}
+		)
+
+	引入到其他模块时调用
+		define(['对应模块'],function(对应模块){
+
+				对应的模块.adapter(data);
+			}
+
+
+		)
+
+	=============================
+	ajax请求，跨域时，使用jsonp处理
+
+	$(".btn").on('click',function(){
+
+		var num = $(".phone").val();
+		http(num,currentData);//网络请求，自定义函数
+
+	});
+
+	function http(num,callback){
+
+		$.ajax(
+		{
+			type:'get',
+			url:'xxxx',
+			data:{
+				num:num,
+				key:key
+			},
+			dataType:'jsonp',
+			jsonp:'callback',
+			jsonpCallback:"getInfo",
+			success:function(data){
+				callback(data);
+			}
+
+			}
+		);
+	}
+
+	function currentData(data){
+		对应的模块.adapter(data);
+	}
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+	
