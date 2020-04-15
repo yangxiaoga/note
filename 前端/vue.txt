@@ -1,0 +1,410 @@
+	
+	
+		Vue.js
+			
+1、引入		
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	或者
+	<script type="text/javascript" src="js/vue.js"></script>
+	
+2、使用
+		
+	<div id="app">
+		{{a}}
+	</div>
+	
+	<script type="text/javascript">
+		var data = {a:1};
+		var app = new Vue({
+			el:'#app',
+			data:data
+		});
+	</script>
+	
+3、vue属性和方法
+
+	这些属性和方法他们都有前缀$,以便于用户定义的
+	属性区分开来
+	
+	var vm = new Vue({
+		el:'#app',
+		data:data
+	});
+	
+	vm.$data === data //true
+	vm.el === document.getElementById("app") //true
+	
+	vm.$watch('a',function(newVal,oldVal){
+		console.log('新值:'+newVal);
+		console.log('旧值:'+oldVal);
+	});
+	
+	
+4、Vue生命周期
+
+	<script type="text/javascript">
+		var data = {a:1};
+		var app = new Vue({
+			el:'#app',
+			data:data,
+			beforeCreate:function(){//这个页面创建前
+				console.log('创建前');
+			},
+			created:function(){//实例创建后
+				console.log('创建');
+			},
+			beforeMount:function(){
+				console.log('before Mount');
+			},
+			mounted:function(){//所有节点被新的vue节点替换之后
+				console.log('mounted');
+			},
+			beforeUpdate:function(){//数据更新时调用
+				console.log('beforeUpdate');
+			},
+			updated:function(){//数据更改，dom重新渲染，打补丁
+				console.log('updated');
+			}
+		});
+		data.a = 4;//触发update
+		
+	</script>	
+	
+5、模板语法
+
+	{{}} 双大括号
+	
+	<div id="app" v-once>
+		{{只绑定一次}}
+	</div>
+	
+	<div id="app" v-once>
+		<!-- 显示html内容-->
+		<p v-html="rawHTML">
+		</p>
+	</div>
+	
+	data:{
+		rawHTML:'<span style="color:red">html</span>'
+	}
+	
+	
+	绑定属性 v-bind
+	
+	<div id="app" v-once>
+		<!-- 绑定类名 -->
+		<p v-html="rawHTML" v-bind:class="{p_block:isEffect}"></p>
+	</div>
+	
+	<script type="text/javascript">
+		var app = new Vue({
+			el:'#app',
+			data:{
+				rawHTML:'<span>span block</span>',
+				isEffect:true //是否生效，控制样式是否生效
+			}
+		});
+	</script>
+	
+	<style type="text/css">
+		.p_block{
+			color:pink;
+		}
+	</style>
+	
+	表达式，运算符
+	{{number+1}}
+	
+	{{ok? 'YES':'NO'}}
+	
+	{{message.split().reverse().join('')}}
+	
+	
+6、指令
+
+	<!-- v-if是否渲染 -->
+	<div id="app">
+		<p v-if="isShow">
+			this is a p block!
+		</p>
+	</div>
+	
+	var app = new Vue({
+		el:'#app',
+		data:{
+			isShow:true
+		}
+	});
+	
+	<!-- v-bind:属性=''-->
+	<div id="app">
+		<a v-bind:href="host">this is a link</a>
+	</div>
+	
+	var app = new Vue({
+		el:'#app',
+		data:{
+			host:'www.xx.com'
+		}
+	});
+	
+	
+	事件绑定
+	
+	@click="函数名"
+	在methods中定义函数
+	@click.stop用于停止冒泡
+	
+	
+	<div id="app">
+		<div @click="fun1" class="a">this is div1
+			<div @click.stop="fun2"  class="b">this is div2
+			
+			</div>
+		</div>
+		<a v-bind:href="host">this is a link</a>
+	</div>
+	
+	<script type="text/javascript">
+		var app = new Vue({
+			el:'#app',
+			data:{
+				host:'www.xx.com'
+			},
+			methods:{
+				fun1:function(){
+					console.log('div1');
+				},
+				fun2:function(){
+					console.log('div2');
+				}
+			}
+		});
+	</script>
+	
+7、条件渲染 v-if
+
+	<div id="app">
+		<div v-if="type==='A'">A
+		</div>
+		<div v-else-if="type==='B'">B
+		</div>
+		<div v-else>
+			NOT A B C
+		</div>
+	</div>
+	
+	var app = new Vue({
+		el:'#app',
+		data:{
+			type:'A'
+		}
+	});
+	
+	v-if 则根据条件进行渲染
+	v-show的元素始终渲染，并保留在dom中，只是display属性的变化
+	
+	
+8、列表渲染 v-for
+
+	<div id="app">
+		<ul>
+			<li v-for="item,index in items">
+				{{item.message}}
+			</li>
+		</ul>
+	</div>
+	
+	<script type="text/javascript">
+		var app = new Vue({
+			el:'#app',
+			data:{
+				items:[
+					{message:'msg1',id:'1'},
+					{message:'msg2',id:'2'},
+				]
+			}
+		});
+	</script>	
+	
+	v-for = "value ,key in obj" -> {{value}}
+	key属性名称，value属性值
+	可以迭代对象的属性
+	
+9、事件处理
+
+	<div id="app">
+		<！--可以在函数中传递参数,传入event对象 -->
+		<div v-on:click="show('abc',$event)" style="width:300px;height:300px;background-color: #FFE4C4;">
+		</div>
+	</div>
+
+	var app = new Vue({
+		el:'#app',
+		data:{
+			name:'xiaoli'
+		},
+		methods:{
+			show:function(str,event){
+				//可以方法name属性
+				console.log('name:'+name+' str:'+str+' event:'+event);
+			}
+		}
+	});
+
+
+10、表单输入绑定
+
+	<div id="app">
+		<!-- v-model 双向绑定-->
+		<input v-model="message" placeholder="edit me">
+		</input>
+		
+		<p>{{message}}</p>
+		
+		<div>
+			<!-- checkbox使用 -->
+			<input type="checkbox"  id="jack" value="jack" v-model="checkedNames"/>
+			<label for="jack">jack</label>
+			<input type="checkbox"  id="john" value="john" v-model="checkedNames"/>
+			<label for="john">john</label>
+			<input type="checkbox"  id="mick" value="mick" v-model="checkedNames"/>
+			<label for="mick">mick</label>
+			
+			<p>checkednames{{checkedNames}}</p>
+			
+			<!-- redio button使用 -->
+			<div>
+				<input type="radio" id="one" value="one" v-model="picked"/>
+				<label for="one">one</label>
+				<br>
+				<input type="radio" id="two" value="two" v-model="picked"/>
+				<label for="two">two</label>
+				<br>
+				<p>picked:{{picked}}</p>
+			</div>
+		</div>
+		
+		<!-- 点击提交-->
+		<button v-on:click="show">提交</button>
+		</div>
+
+
+		<script type="text/javascript">
+			var app = new Vue({
+				el:'#app',
+				data:{
+					message:'点击修改',
+					checkedNames:['john','mike'],
+					picked:'one'
+				},
+				methods:{
+					show:function(){
+						var obj = {//获取提交的内容
+							message:this.message,
+							checkedNames:this.checkedNames,
+							picked:this.picked
+						}
+						console.log(obj);
+					}
+				}
+			});
+		</script>
+
+11、组件
+	
+	<div id="app">
+			<!-- 使用组件 -->
+			<!-- click-now 自定义，用于触发父类app的事件-->
+			<button-counter title="btn" @click-now="clickNow"></button-counter>
+			<!-- 组件复用-->
+			<button-counter title="btn1"></button-counter>
+	</div>
+
+	<script type="text/javascript">
+		<!-- 定义组件 -->
+		Vue.component('button-counter',{
+				props:['title'],//定义属性title
+				data:function(){
+					return{
+						//初始化count为0，每个组件单独一份
+						count:0
+					}
+				},
+				<!-- 如果有多个html标签，需要有一个根节点，如div-->
+				template:'<div><h1>标题</h1><button v-on:click="show">title:{{title}}clicked times {{count}}</button></div>',
+				methods:{
+					show:function(){
+						this.count++;
+						//触发父级的函数
+						this.$emit('click-now',this.count);
+					}
+				}
+			}
+		);
+		var app = new Vue({
+			el:'#app',
+			data:{
+			},
+			methods:{
+				clickNow:function(c){
+					console.log(c);
+				}
+			}
+		});
+	</script>
+
+12、单文件组件
+	
+	安装npm node package manager
+	基于node.js的包管理器
+	
+	安装cnpm
+	npm install -g cnpm --registry=https://registry.npm.taobao.org
+	
+	安装vue-cli
+	cnpm install -g @vue/cli
+	
+	安装webpack
+	cnpm install -g webpack
+	webpack是javascript打包器
+
+	>vue ui 启动图形化界面
+
+	创建项目如test
+	创建成功后，拷贝到Hbuilderx
+	
+	构成
+	
+	<template>
+		<div></div>
+	</template>
+	
+	<script>
+		export default{
+			name:'Helloworld',
+			props:{
+				msg:String
+			}
+		}
+	</script>
+	
+	<style></style>
+	
+	
+	其他地方使用
+	import Helloworld from './components/Helloworld.vue'
+	export default{
+		name:'App',
+		components:{
+			Helloworld
+		}
+	}
+	
+	使用
+	<HelloWorld msg="Welcome to Your Vue.js App"/>
+13、hbuilderx创建 uni -app 项目
+	
+	
+	
+	

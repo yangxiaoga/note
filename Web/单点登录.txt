@@ -1,0 +1,30 @@
+﻿			
+					单点登录
+1、何为单点登录
+
+	多系统，单一位置登录，实现多系统同时登录的一种技术
+	常出现在互联网应用和企业级平台中
+	
+	三方登录
+	如：其他应用的qq登录，微信登录，授权
+
+
+2、session跨域
+	
+	客户端请求的时候，请求的服务器，不是同一个IP,端口，域名，主机名
+	的时候，都称为跨域
+
+	spring-session技术是spring提供了用于处理集群会话的解决
+	方案，spring-session技术是将用户的的session数据保存到
+	第三方存储容器中，如mysql,redis
+
+	spring-session技术是解决同域名下的多服务器集群session
+	共享问题，不能解决跨域session共享问题
+
+	nginx session 共享
+
+	nginx中的ip_hash 技术能将某个ip的请求定向到同一台后端
+	这样一来这个ip下的某个客户端和某个后端就能建立起稳固的session	
+	ip_hash是在upstream配置中定义的
+
+	  	 
