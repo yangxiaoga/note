@@ -1,0 +1,320 @@
+﻿			
+					单点登录
+1、何为单点登录
+
+	多系统，单一位置登录，实现多系统同时登录的一种技术
+	常出现在互联网应用和企业级平台中
+	
+	三方登录
+	如：其他应用的qq登录，微信登录，授权
+
+2、session跨域
+	
+	客户端请求的时候，请求的服务器，不是同一个IP,端口，域名，主机名
+	的时候，都称为跨域
+
+	2.1 手动
+	获取domain,并去除不一样的内容如search.baidu.com,tie.baidu.com
+	去掉search,tie.后面的内容相同，并设置cookie
+
+	2.2 spring-session
+	spring-session技术是spring提供了用于处理集群会话的解决方案，
+	spring-session技术是通过Filter将用户的的session数据保存到第
+	三方存储容器中，如mysql,redis
+
+	spring-session技术是解决同域名下的多服务器集群session共享问题，
+	不能解决跨域session共享问题
+	
+	spring-session
+	spring-session-jdbc
+	创建表
+	spring-session
+	spring-session-attributes
+
+	bean: JdbcHttpSessionConfiguration
+	
+	执行流程
+		请求 - Tomcat - 过滤器Filter - JdbcHttpSessionConfiguration - 数据库
+
+	2.3 nginx session 共享
+	
+	nginx是C语言开发，对CPU和内存的要求很低，负载能力很高
+	
+	正向代理：客户端已知，对服务器透明的代理应用，如翻墙软件
+	反向代理：对服务端已知，对客户端透明
+	
+	可以做静态WEB服务，邮件代理服务器，虚拟主机，反向代理服务器
+	
+	
+	安装要求
+	yum install -y gcc-c++
+	yum install -y pcre-devel   正则表达式相关，http解析
+	yum install zlip zlip-devel 压缩解压
+	yum install -y openssl openssl-devel  nginx支持http,https
+	
+	编译安装
+	./configure --prefix=/usr/local/nginx
+	
+	make 源代码编程可执行文件
+	make install 将编译后的可执行文件，运行并安装，形成一个应用
+	
+	sbin/nginx 启动
+	sbin/nginx -s quit 优雅关机
+	sbin/nginx -s stop 快速关闭
+	
+	
+
+	NGINX中的session共享
+	
+	nginx中的ip_hash 技术能将某个ip的请求定向到同一台后端
+	这样一来这个ip下的某个客户端和某个后端就能建立起稳固的
+	session,ip_hash是在upstream配置中定义的
+	
+	ip_hash如果不是最前端，可能会出现问题,nginx前有网关或者
+	路由，得到是网关或者路由的ip；服务器宕机了，则丢失
+
+
+	upstream www.test.com{
+	
+		server 127.0.0.1:8080;
+		server 127.0.0.1:808;
+		ip_hash;
+	}
+	server{
+		server_name www.test.com;
+		location / {
+			proxy_pass www.test.com
+		}
+	
+	}
+
+	域的划分:以IP,端口，域名，主机名为标准实现划分
+	
+	
+3、Token机制
+
+	服务端不再存储用户的登录记录，服务端收到请求，去验证用户名,密码
+	验证成功，签发一个token,再把token发送给客户端，客户端收到token,
+	存储起来，如放在cookie或者localstorage中
+	
+	客户端每次想服务端请求资源时，需要带着token
+	
+	优势：无状态-不需要用于记录状态变更，可扩展
+	安全，不将信息存储在Session中，用户状态存储在redis等
+	放在请求头中
+	
+4、JSON WEB TOKEN (JWT) 机制
+
+	紧凑且自包含，用于在多方传递JSON对象的技术，数据可以使用数字签名
+	增加其安全性，可以使用HMACK加密算法或者RSA公钥私钥加密方式
+	
+	紧凑：数据小，可以通过URL,POST参数，请求头发送，数据小传输速度快
+	自包含：通过使用payload数据块记录用户必要且不隐私的数据减少数据库
+	访问次数，提高代码性能
+
+	JWT一般用于处理用户身份验证或数据信息交换可以实现跨站的数据信息交换
+	
+	用户身份验证：一旦用户登录成功，后续请求都将包含JWT,允许用户访问
+	该令牌允许的路由，服务和资源，轻松跨域
+	数据信息交换：JWT是一种非常方便的多方传递数据的载体，因为其可以使用
+	数据签名来保证数据的有效性和安全性
+
+	JWT数据结构
+		A.B.C
+		
+		A - header 头信息
+		B - payload 有效负荷，不隐私数据
+		C - signature 签名，头+payload+密匙
+		
+		
+		header
+		数据结构：{"alg":"加密算法名称","type":"JWT"}
+		alg是加密算法定义内容，如：HAMCK SHA256或RSA
+		type是token类型，这里固定为JWT
+		
+		
+		PAYLOAD
+		payload数据块中一般用于记录实体(通常为用户信息)或其他数据的
+		
+		主要分为三个部分：
+			已注册信息(registered claims) - 最重要
+			公开数据(public claims) - 不要和已注册信息重名
+			私有数据(private claims)
+			
+			公开数据和私有数据可以由程序员任意定义，payload内容都是铭文记录
+			不推荐在payload中记录任何敏感数据
+		
+		payload中常用信息：iss发行者 exp到期时间 sub主题 aud受众
+		
+		Signature
+		开发者提供的信息
+		
+		A.B.C:
+		加密后的header.加密后的payload.(加密后的header.加密后的payload+签名)加密
+		
+		
+5、JWT执行流程
+
+	Browser: POST/users/login     
+	Server: create jwt with a secret
+	Server: return the JWT to the browser
+	Browser: sends the JWT on the Authorization Header
+	Server: check JWT segnature Get user infomation from the JWT
+			Sends response to the client
+			
+6、实现	
+
+	核心依赖
+	com.auth0
+	java-jwt
+
+	io.jsonwebtoken
+	jjwt
+	
+	返回
+	Integer code
+	Object data
+	String message
+	String token //JWT生成的令牌,超时失效
+	
+	Token生成过程
+	
+	SignatureAlgorithm
+	Secretkey//密匙
+	JwtBuilder Jwts.builder();
+	.setId() //唯一id
+	.setIssuer(iss) //签发者
+	.setSubject(subject) //payload公开信息
+	.setIssueAt(Date-now) //token生成时间
+	.signWith(SignatureAlgorithm,Secretkey)
+	.setExpiration(Date) //失效时间
+	
+	 builder.compact() //生成token
+	
+	 前端
+	 window.localStorage.token=data.token
+	 
+	 localStorage 本地存储，长期有效
+	 session storage 会话存储的数据，一次会话有效
+	 
+	 ajax - before:
+	 xhr.setRequestHeader('Authorization',window.localStorage.token)
+	
+
+	 token保存位置
+	 
+	 cookie或者localStorage
+	 cookie可以实现跨域传递数据
+	 localStorage是域私有的本地存储，无法实现跨域
+	 关闭页面localStorage也不会消失
+	 
+	 sessionStorage仅在当前会话有效，浏览器关闭
+	 会被销毁
+	 
+	 
+	 
+7、Rest接口设计
+   面向资源的架构：http规范+rest风格
+
+   get请求就是查询，post请求就是新增，意图明显
+   没有必要做描述
+   
+   http://ip/user/1 GET根据id查询用户
+   http://ip/user POST新增
+
+   PUT修改
+   DELETE 删除
+   
+   响应状态码           响应体      描述
+   ------------------------------------------------
+   200 get/put 			资源数据 	操作成功
+   201 post    			元数据   	创建成功
+   202 post/put/delete  无			请求已接受
+   204 delete/put       无			请求已处理，无返回数据
+   301 get    			link链接  	资源已被移除
+   303 get    			link      	重定向
+   304 get    			无        	资源没有被修改
+   400 get/post/put/delete          参数错误
+   401 get/post/put/delete          未授权
+   403 get/post/put/delete          访问受限，授权过期
+   404 get/post/put/delete          资源服务未找到
+   405 get/post/put/delete          不允许的http方法
+   409 get/post/put/delete          资源冲突或资源被锁定
+   415 get/post/put/delete          不支持的数据类型或媒体类型
+   429 get/post/put/delete          请求过多被限制
+   500 get/post/put/delete          系统错误
+   501 get/post/put/delete          接口未实现
+   
+
+8、接口的安全机制
+
+	单向加密
+		理论上，从明文到密文后，不可反向解密的，算法不对外公布
+		可以迭代和加盐的方式保证不可反向解密
+	
+	双向加密
+	
+		可以实现加密和解密的双向运算的算法，需要通过密钥实现加解密运算
+		
+		密钥种类
+			公钥：可以公开在网络传递的
+			私钥：不会对外暴露
+		
+		对称加密
+		只有一个密钥，就是公钥
+
+		非对称加密
+		有两个密钥，公钥和私钥
+		
+		公钥或者私钥参与加密过程
+		
+9、DES和AES加密
+
+   	DES的密文是非定长密文，根据明文数据和key数据
+	AES的key要求长度为16 	
+		
+		
+		
+		
+		
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+    	  	 
