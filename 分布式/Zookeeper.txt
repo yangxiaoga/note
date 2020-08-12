@@ -5,6 +5,22 @@
 
 	1、是什么
 
+		先看它能做啥 
+			解决分布式系统数据一致性问题ACID
+			协调一堆动物：hadoop、impala、shark、hive
+			
+                简单概括
+		        一致
+		        有头 - 选举
+		        数据树    
+		        每个节点都有一个数据
+		        /
+			--app1- data
+			--app2 -data
+				--data1 - data
+				--data2 - data
+                使用zookeeper开发分布式系统,Zookeeper更像是API
+		
 		它是一个高效地分布式协调服务，他暴露了一些服务如：命名，配置，管理，同步控制，群组服务等，
 		我们可以使用zk来实现比如：达成共识，集群管理，leader选举等
 
