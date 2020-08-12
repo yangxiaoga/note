@@ -233,8 +233,8 @@
 	6、API
 
 		Zookeeper() 参数说明
-
-			connecString:连接服务器列表，用逗号分隔
+                         Zookeeper zk = new Zookeeper(conn,sessionTimeout,watcher);              
+			connecString:连接服务器列表，用逗号分隔; 如String conn = "192.168.1.12:2181,192.168.1.13:2181,192.168.1.14:2181";
 			sessionTimeout:心跳检测时间周期，毫秒
 			watcher:事件处理通知器
 			canBeReadOnly:标识当前会话是否支持只读
