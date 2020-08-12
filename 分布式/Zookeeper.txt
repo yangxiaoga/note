@@ -201,7 +201,7 @@
 		服务器标识配置
 
 			创建文件夹 data
-                        /tmp/zookeeper下创建myid文件
+                        在data文件夹下创建myid文件
 			vim myid 内容为服务标识（如：0）
 			
 
